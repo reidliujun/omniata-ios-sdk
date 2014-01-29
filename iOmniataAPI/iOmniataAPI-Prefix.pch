@@ -1,0 +1,11 @@
+//
+// Prefix header for all source files of the 'iOmniataAPI' target in the 'iOmniataAPI' project
+//
+
+#ifdef __OBJC__
+    #import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
+
+#import "OMTConstants.h"
+#import "Logger.h"
+#endif

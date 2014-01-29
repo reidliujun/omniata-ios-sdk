@@ -1,0 +1,7 @@
+.idea
+dist
+DerivedData
+build
+.DS_Store
+*.pbxuser
+*xcuserdata
