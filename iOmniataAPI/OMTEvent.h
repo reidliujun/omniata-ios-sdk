@@ -1,6 +1,5 @@
 #import <Foundation/Foundation.h>
 
-
 @interface OMTEvent : NSObject
 {
     int _type;

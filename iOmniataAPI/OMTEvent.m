@@ -1,9 +1,9 @@
 #import "OMTEvent.h"
 
-
 @implementation OMTEvent {
 
 }
+
 @synthesize data = _data;
 
 - (id)initWithType:(int)type andData:(NSDictionary *)data {
@@ -14,6 +14,5 @@
     }
     return self;
 }
-
 
 @end
