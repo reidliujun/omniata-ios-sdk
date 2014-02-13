@@ -1,6 +1,7 @@
 #import <Foundation/Foundation.h>
 
 #include "iOmniataAPI.h"
+
 @interface OMTConfig : NSObject
 {
     @private
@@ -17,7 +18,6 @@
 @property(readonly, assign) NSUInteger maxRetriesForChannelMessages;
 @property(readonly, assign) NSUInteger retryInterval;
 @property(readonly, copy)   NSMutableDictionary *userParams;
-
 
 +(OMTConfig *)instance;
 -(void) setLogType:(SMT_LOG) logVal;
