@@ -26,7 +26,7 @@ static OMTChannelEngine *channelEngine;
     if (!initialized) {
         NSException *exception;
         NSString * errorString;
-        if(api_key == nil || [api_key length] <= 0)
+        if (api_key == nil || [api_key length] <= 0)
         {
             errorString = @"api_key cannot be nil or empty";
         }
@@ -35,7 +35,7 @@ static OMTChannelEngine *channelEngine;
             errorString = @"user_id cannot be nil or empty";
         }
         
-        if(errorString != nil)
+        if (errorString != nil)
         {
             exception = [NSException exceptionWithName:@"InvalidInitializationException" reason:errorString userInfo:nil];
             @throw exception;
@@ -90,12 +90,12 @@ static OMTChannelEngine *channelEngine;
     
     LOG(SMT_LOG_INFO, @"LE EVENT: %@", mDict);
     
-    BOOL result =  [trackerEngine addEvent:mDict];
+    BOOL result = [trackerEngine addEvent:mDict];
     if (result)
     {
         LOG(SMT_LOG_INFO, @"event successfully added for tracking");
     }
-    return  result;
+    return result;
 }
 
 + (BOOL)trackPurchaseEvent:(double)total currency_code:(NSString *)currency_code {
@@ -187,7 +187,6 @@ static OMTChannelEngine *channelEngine;
     }
     return channelEngine.messages;
 }
-
 
 + (NSString *)getAgentVersion {
     return iOMT_TRACKER_VERSION;
