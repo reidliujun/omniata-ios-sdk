@@ -6,7 +6,6 @@
 #import "OMTConfig.h"
 #import "SBJson.h"
 
-
 @implementation OMTEngine {
     
 }
@@ -38,11 +37,12 @@
             }
             [NSThread sleepForTimeInterval:EVENT_PROCESSOR_THREAD_DELAY];
         }
+        // Persist events that might have been added while sleeping
+        [self persistEvents];
     }
 }
 
 - (void)uploadEvents:(BOOL)_flush {
-    
     if (![self getConfig]) {
         LOG(SMT_LOG_VERBOSE, @"Upload skipped as Config is not loaded");
         return;
@@ -59,7 +59,7 @@
     const NSUInteger batchUploadDelay = config.batchUploadDelay;
     
     if (eventCount > 0) {
-        if (_flush)  // thats a flush command
+        if (_flush) // thats a flush command
         {
             LOG(SMT_LOG_VERBOSE, @"upload triggered with FLUSH OVERRIDE");
             eventCount = eventCount >= maxBatchCount ? maxBatchCount : eventCount;
@@ -86,10 +86,12 @@
         if (internetConnected) {
             offlineDetected = NO;
             retryInterval = config.retryInterval;
+            // batchQueue has eventCount elements...
             OMTQueue *batchQueue = [persistentEventQueue getSubQueue:eventCount];
             
+            // ...mDict has one
             NSMutableDictionary* mDict = [NSMutableDictionary dictionaryWithDictionary:[batchQueue remove]];
-            //          [mDict addEntriesFromDictionary:config.userParams];
+            // [mDict addEntriesFromDictionary:config.userParams];
             
             NSMutableString *url = [NSMutableString stringWithString:[config getURL:SMT_SERVER_TRACK]];
             [url appendString:@"?"];
@@ -108,10 +110,10 @@
                 }
             }
             
-            if (responseCode >= INTERNAL_SERVER_ERROR) {
+            if (responseCode > HTTP_BAD_REQUEST) {
                 LOG(SMT_LOG_ERROR, @"Max tries reached. Deleting events");
-                
             }
+            
             lastEventUploadTime = [OMTUtils getCurrentTimeSecs];
             [persistentEventQueue removeBlock:eventCount];
             [persistentEventQueue save];
@@ -121,7 +123,6 @@
             LOG(SMT_LOG_INFO, @"Event Upload skipped: OFFLINE DEVICE");
         }
     }
-    
 }
 
 - (BOOL)getConfig {
@@ -130,8 +131,6 @@
     }
     return eventConfigLoaded;
 }
-
-
 
 - (void)persistEvents {
     NSUInteger eventCount = [mEventQueue getCount];
@@ -142,6 +141,7 @@
     }
     if (hasEvents) {
         [persistentEventQueue save];
+        // TODO: not handling the response value
     }
 }
 
@@ -158,7 +158,6 @@
     return YES;
 }
 
-
 - (void)flushEventsQueue {
     //set the flush flag.....
     flush = TRUE;
@@ -171,6 +170,5 @@
     persistentEventQueue = nil;
     eventProcessorThread = nil;
 }
-
 
 @end
