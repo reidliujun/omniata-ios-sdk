@@ -17,6 +17,7 @@
 @property(readonly, assign) NSUInteger maxRetriesForChannelMessages;
 @property(readonly, assign) NSUInteger retryInterval;
 @property(readonly, copy)   NSMutableDictionary *userParams;
+@property(readonly, assign) BOOL(^reachability)(void);
 
 
 +(OMTConfig *)instance;
@@ -25,6 +26,7 @@
 
 - (void)initialize:(NSMutableDictionary *)param :(BOOL)debug;
 -(NSString *)getURL:(SMT_SERVERS)serverId;
+- (void)setReachability:(BOOL (^)(void))reachability;
 
 - (BOOL)getEventConfig;
 @end
