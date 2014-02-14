@@ -49,8 +49,6 @@
     }
     
     NSUInteger eventCount = [persistentEventQueue getCount];
-    NSUInteger numTries = 0;
-    NSUInteger retryInterval = 1;
     double currentTime = [OMTUtils getCurrentTimeSecs];
     double elapsedTime = currentTime - self->lastEventUploadTime;
     
@@ -85,7 +83,6 @@
         BOOL internetConnected = [OMTUtils connectedToNetwork];
         if (internetConnected) {
             offlineDetected = NO;
-            retryInterval = config.retryInterval;
             OMTQueue *batchQueue = [persistentEventQueue getSubQueue:eventCount];
             
             NSMutableDictionary* mDict = [NSMutableDictionary dictionaryWithDictionary:[batchQueue remove]];
@@ -110,12 +107,20 @@
             NSInteger responseCode = INTERNAL_SERVER_ERROR;
             NSString *response;
             
+            NSUInteger numTries = 0;
             while (responseCode > HTTP_BAD_REQUEST && numTries < maxTries) {
                 responseCode = [OMTUtils getFromURL:url:&response];
+                
                 if (responseCode > HTTP_BAD_REQUEST) {
                     numTries++;
-                    LOG(SMT_LOG_ERROR, @"Tracking event not successful, will retry. Attempt: %d", numTries);
-                    [NSThread sleepForTimeInterval:retryInterval];
+                    
+                    NSUInteger sleep = SLEEP_TIME * pow(2, numTries);
+                    if (sleep > MAX_SLEEP) {
+                        sleep = MAX_SLEEP;
+                    }
+
+                    LOG(SMT_LOG_ERROR, @"Tracking event unsuccessful, will retry. Attempt: %d. Sleep %d", numTries, sleep);
+                    [NSThread sleepForTimeInterval:sleep];
                 }
             }
             

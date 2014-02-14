@@ -129,7 +129,6 @@ static BOOL debug = false;
         "    \"max_channel_retries\":3, \n"
         "    \"max_batch_size\":1, \n"
         "    \"max_batch_delay\":20, \n"
-        "    \"retry_delay\":4 \n"
         "} ";
     }
     updated = [self initEventConfig:string];
@@ -172,19 +171,12 @@ static BOOL debug = false;
         }
         batchUploadDelay = [val unsignedIntValue];
 
-        val = [dictionary objectForKey:CONFIG_JSON_MIN_RETRY_DELAY];
-        if (!val) {
-            LOG(SMT_LOG_ERROR, @"Value not found for %@ in config", CONFIG_JSON_MIN_RETRY_DELAY);
-            return isSuccess;
-        }
-        retryInterval = [val unsignedIntValue];
         isSuccess = YES;
         LOG(SMT_LOG_INFO, @"Event CONFIG loaded successfully");
         LOG(SMT_LOG_VERBOSE, @"maxRetriesForEvents:%d",maxRetriesForEvents);
         LOG(SMT_LOG_VERBOSE, @"maxRetriesForChannel:%d",maxRetriesForChannelMessages);
         LOG(SMT_LOG_VERBOSE, @"maxBatchSize:%d",maxBatchSize);
         LOG(SMT_LOG_VERBOSE, @"batchUploadDelay:%d",batchUploadDelay);
-        LOG(SMT_LOG_VERBOSE, @"retryInterval:%d",retryInterval);
     }
     return isSuccess;
 }
