@@ -87,6 +87,7 @@ static OMTChannelEngine *channelEngine;
     
     NSMutableDictionary* mDict = [NSMutableDictionary dictionaryWithDictionary:param];
     [mDict setObject:type forKey:@"om_event_type"];
+    [mDict setObject:[NSNumber numberWithDouble:[OMTUtils getCurrentTimeSecs]] forKey:@"om_creation_time"];
     [mDict addEntriesFromDictionary:config.userParams];
     
     LOG(SMT_LOG_INFO, @"LE EVENT: %@", mDict);

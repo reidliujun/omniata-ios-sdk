@@ -89,6 +89,17 @@
             OMTQueue *batchQueue = [persistentEventQueue getSubQueue:eventCount];
             
             NSMutableDictionary* mDict = [NSMutableDictionary dictionaryWithDictionary:[batchQueue remove]];
+            NSNumber *omCreationTime = [mDict objectForKey:@"om_creation_time"];
+            if (omCreationTime != nil)
+            {
+                [mDict removeObjectForKey:@"om_creation_time"];
+                [mDict setObject:[NSNumber numberWithDouble:([OMTUtils getCurrentTimeSecs] - [omCreationTime doubleValue])] forKey:@"om_delta"];
+            }
+            else {
+                // Backwards compatibility for old events in the queue that don't have om_creation_time.
+                // Obviously value of om_delta is > 0, but know way to calculate, so just using 0.
+                [mDict setObject:[NSNumber numberWithInt:0] forKey:@"om_delta"];
+            }
             //          [mDict addEntriesFromDictionary:config.userParams];
             
             NSMutableString *url = [NSMutableString stringWithString:[config getURL:SMT_SERVER_TRACK]];
