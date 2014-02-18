@@ -132,7 +132,6 @@ static OMTChannelEngine *channelEngine;
 }
 
 + (NSDictionary*) getDeviceParams {
-    NSString* idfa = [[[ASIdentifierManager sharedManager] advertisingIdentifier] UUIDString];
     NSString* systemName = [[UIDevice currentDevice] systemName];
     NSString* systemVersion = [[UIDevice currentDevice] systemVersion];
     NSString* model = [[UIDevice currentDevice] model];
@@ -141,7 +140,6 @@ static OMTChannelEngine *channelEngine;
     NSString* locale = [[NSLocale currentLocale] objectForKey:NSLocaleCountryCode];
     
     NSDictionary* params = [NSDictionary dictionaryWithObjectsAndKeys:
-                            idfa, @"om_ios_idfa",
                             systemName, @"om_ios_sysname",
                             systemVersion, @"om_ios_sysver",
                             model, @"om_ios_model",
