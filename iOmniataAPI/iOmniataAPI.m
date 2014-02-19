@@ -94,12 +94,12 @@ static OMTChannelEngine *channelEngine;
     
     LOG(SMT_LOG_INFO, @"LE EVENT: %@", mDict);
     
-    BOOL result =  [trackerEngine addEvent:mDict];
+    BOOL result = [trackerEngine addEvent:mDict];
     if (result)
     {
         LOG(SMT_LOG_INFO, @"event successfully added for tracking");
     }
-    return  result;
+    return result;
 }
 
 + (BOOL)trackPurchaseEvent:(double)total currency_code:(NSString *)currency_code {

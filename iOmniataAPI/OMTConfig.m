@@ -60,7 +60,6 @@
 @synthesize userParams;
 @synthesize maxRetriesForChannelMessages;
 
-
 static SMT_LOG logType = SMT_LOG_NONE;
 static NSString *rooturl = nil;
 static NSString *trackUrl = nil;
@@ -93,7 +92,7 @@ static BOOL debug = false;
     }
    trackUrl = [NSString stringWithFormat:@"%@%@", rooturl, EVENTS_TRACK_SUB_URL];
    configUrl = [NSString stringWithFormat:@"%@%@", rooturl, CONFIG_SUB_URL];
-   channelUrl = [NSString stringWithFormat:@"%@%@",rooturl,CHANNEL_MSGS_SUB_URL];
+   channelUrl = [NSString stringWithFormat:@"%@%@",rooturl, CHANNEL_MSGS_SUB_URL];
 }
 
 - (NSString *)getURL:(SMT_SERVERS)serverId {
@@ -111,7 +110,6 @@ static BOOL debug = false;
     return nil;
 }
 
-
 - (BOOL)getEventConfig {
     BOOL updated = NO;
     NSString *string;
@@ -121,14 +119,15 @@ static BOOL debug = false;
     {
         LOG(SMT_LOG_INFO, @"configuration received from server");
     }
-    else{
+    else {
         LOG(SMT_LOG_WARN, @"configuration not received from server. Loading defaults");
         
         string = @"{ \n"
         "    \"max_track_retries\":3, \n"
         "    \"max_channel_retries\":3, \n"
         "    \"max_batch_size\":1, \n"
-        "    \"max_batch_delay\":20, \n"
+        "    \"max_batch_delay\":0, \n"
+        "    \"retry_delay\":4 \n"
         "} ";
     }
     updated = [self initEventConfig:string];
@@ -173,10 +172,11 @@ static BOOL debug = false;
 
         isSuccess = YES;
         LOG(SMT_LOG_INFO, @"Event CONFIG loaded successfully");
-        LOG(SMT_LOG_VERBOSE, @"maxRetriesForEvents:%d",maxRetriesForEvents);
-        LOG(SMT_LOG_VERBOSE, @"maxRetriesForChannel:%d",maxRetriesForChannelMessages);
-        LOG(SMT_LOG_VERBOSE, @"maxBatchSize:%d",maxBatchSize);
-        LOG(SMT_LOG_VERBOSE, @"batchUploadDelay:%d",batchUploadDelay);
+        LOG(SMT_LOG_VERBOSE, @"maxRetriesForEvents:%d", maxRetriesForEvents);
+        LOG(SMT_LOG_VERBOSE, @"maxRetriesForChannel:%d", maxRetriesForChannelMessages);
+        LOG(SMT_LOG_VERBOSE, @"maxBatchSize:%d", maxBatchSize);
+        LOG(SMT_LOG_VERBOSE, @"batchUploadDelay:%d", batchUploadDelay);
+        LOG(SMT_LOG_VERBOSE, @"retryInterval:%d", retryInterval);
     }
     return isSuccess;
 }

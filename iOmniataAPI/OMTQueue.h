@@ -1,6 +1,5 @@
 #import <Foundation/Foundation.h>
 
-
 @interface OMTQueue : NSObject {
     NSRecursiveLock *queLock;
     NSMutableArray *queue;

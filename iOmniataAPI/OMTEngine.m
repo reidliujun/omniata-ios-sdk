@@ -6,7 +6,6 @@
 #import "OMTConfig.h"
 #import "SBJson.h"
 
-
 @implementation OMTEngine {
     
 }
@@ -37,11 +36,12 @@
             }
             [NSThread sleepForTimeInterval:EVENT_PROCESSOR_THREAD_DELAY];
         }
+        // Persist events that might have been added while sleeping
+        [self persistEvents];
     }
 }
 
 - (void)uploadEvents {
-    
     if (![self getConfig]) {
         LOG(SMT_LOG_VERBOSE, @"Upload skipped as Config is not loaded");
         return;
@@ -76,9 +76,14 @@
         BOOL internetConnected = [OMTUtils connectedToNetwork];
         if (internetConnected) {
             offlineDetected = NO;
+
+            // batchQueue has eventCount elements...
+
             OMTQueue *batchQueue = [persistentEventQueue getSubQueue:eventCount];
             
+            // ...mDict has one
             NSMutableDictionary* mDict = [NSMutableDictionary dictionaryWithDictionary:[batchQueue remove]];
+
             NSNumber *omCreationTime = [mDict objectForKey:@"om_creation_time"];
             if (omCreationTime != nil)
             {
@@ -117,10 +122,10 @@
                 }
             }
             
-            if (responseCode >= INTERNAL_SERVER_ERROR) {
+            if (responseCode > HTTP_BAD_REQUEST) {
                 LOG(SMT_LOG_ERROR, @"Max tries reached. Deleting events");
-                
             }
+            
             lastEventUploadTime = [OMTUtils getCurrentTimeSecs];
             [persistentEventQueue removeBlock:eventCount];
             [persistentEventQueue save];
@@ -130,7 +135,6 @@
             LOG(SMT_LOG_INFO, @"Event Upload skipped: OFFLINE DEVICE");
         }
     }
-    
 }
 
 - (BOOL)getConfig {
@@ -139,8 +143,6 @@
     }
     return eventConfigLoaded;
 }
-
-
 
 - (void)persistEvents {
     NSUInteger eventCount = [mEventQueue getCount];
@@ -151,6 +153,7 @@
     }
     if (hasEvents) {
         [persistentEventQueue save];
+        // TODO: not handling the response value
     }
 }
 
@@ -173,6 +176,5 @@
     persistentEventQueue = nil;
     eventProcessorThread = nil;
 }
-
 
 @end

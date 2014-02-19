@@ -8,7 +8,7 @@ typedef enum {
     SMT_LOG_VERBOSE
 } SMT_LOG;
 
-typedef enum{
+typedef enum {
     CHANNEL_MESSAGE_LOAD_SUCCESS,
     CHANNEL_MESSAGE_LOAD_FAILED
 } OMT_CHANNEL_STATUS;
@@ -105,7 +105,7 @@ typedef enum{
 
 /** Append the load event for tracking.
  
- Use this method to track the load event.Use this to track the first time loading of the application. This method will add the event to the internal event queue and later uploaded to the server when certain batch management criteria are met.
+ Use this method to track the load event. Use this to track the first time loading of the application. This method will add the event to the internal event queue and later uploaded to the server when certain batch management criteria are met.
  Throws NSException if called before initialisation call.
  @return BOOL YES for successful event addition for tracking and NO for failure.
  */
@@ -113,7 +113,7 @@ typedef enum{
 
 /** Append the load event with parameters for tracking.
  
- Use this method to track the load event.Use this to track the first time loading of the application. This method will add the event to the internal event queue and later uploaded to the server when certain batch management criteria are met.
+ Use this method to track the load event. Use this to track the first time loading of the application. This method will add the event to the internal event queue and later uploaded to the server when certain batch management criteria are met.
  Throws NSException if called before initialisation call.
  @param parameters NSDictionary containing additional parameters that will be tracked with load event.
  @return BOOL YES for successful event addition for tracking and NO for failure.

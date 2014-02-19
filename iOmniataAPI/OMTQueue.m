@@ -10,6 +10,7 @@
 @implementation OMTQueue {
 
 }
+
 - (id)init {
     if (self = [super init]) {
         queue = [[NSMutableArray alloc] init];
@@ -39,7 +40,7 @@
     [queLock lock];
     NSUInteger count = [queue count];
     if (count > 0) {
-        object = [queue objectAtIndex:0]; //todo:JIJO not doing retain, assuming ARC takes care.
+        object = [queue objectAtIndex:0]; //todo: JIJO not doing retain, assuming ARC takes care.
         [queue removeObjectAtIndex:0];
     }
     [queLock unlock];
@@ -56,7 +57,6 @@
     }
     [queLock unlock];
 }
-
 
 - (OMTQueue *)getSubQueue:(NSUInteger)count {
     NSArray * array;
@@ -98,7 +98,7 @@
     BOOL success = NO;
     if (fileName) {
         [queLock lock];
-         success = [NSKeyedArchiver archiveRootObject:self toFile:fileName];
+        success = [NSKeyedArchiver archiveRootObject:self toFile:fileName];
         [queLock unlock];
     }
     else {
@@ -111,13 +111,11 @@
     return [self writeToFile];
 }
 
-- (void) encodeWithCoder:(NSCoder *)coder
-{
+- (void) encodeWithCoder:(NSCoder *)coder {
     [coder encodeObject:queue forKey:@"queue"];
 }
 
-- (id) initWithCoder:(NSCoder *)coder
-{
+- (id) initWithCoder:(NSCoder *)coder {
     if (self = [super init])
     {
         queue = [coder decodeObjectForKey:@"queue"];
