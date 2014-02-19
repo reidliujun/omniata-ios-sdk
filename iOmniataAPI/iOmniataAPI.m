@@ -22,41 +22,43 @@ static OMTEngine * trackerEngine;
 static OMTChannelEngine *channelEngine;
 
 + (void)initializeWithApiKey:(NSString *)api_key UserId:(NSString *)user_id AndDebug:(BOOL)debug {
-    LOG(SMT_LOG_INFO, @"Initializing library");
-    OMTConfig * config = [OMTConfig instance];
-    if (!initialized) {
-        NSException *exception;
-        NSString * errorString;
-        if(api_key == nil || [api_key length] <= 0)
-        {
-            errorString = @"api_key cannot be nil or empty";
+    @synchronized(self) {
+        LOG(SMT_LOG_INFO, @"Initializing library");
+        OMTConfig * config = [OMTConfig instance];
+        if (!initialized) {
+            NSException *exception;
+            NSString * errorString;
+            if(api_key == nil || [api_key length] <= 0)
+            {
+                errorString = @"api_key cannot be nil or empty";
+            }
+            if (user_id == nil || [user_id length] <= 0)
+            {
+                errorString = @"user_id cannot be nil or empty";
+            }
+            
+            if(errorString != nil)
+            {
+                exception = [NSException exceptionWithName:@"InvalidInitializationException" reason:errorString userInfo:nil];
+                @throw exception;
+            }
+            NSMutableDictionary * userParams = [NSMutableDictionary dictionaryWithObjectsAndKeys: api_key, @"api_key", user_id, @"uid", nil];
+            
+            [config initialize:userParams:debug];
+            trackerEngine = [[OMTEngine alloc] init];
+            channelEngine = [[OMTChannelEngine alloc] init];
+            BOOL result = [trackerEngine initialize];
+            if(!result)
+            {
+                exception = [NSException exceptionWithName:@"InvalidInitializationException" reason:@"Error Initializing TrackerEngine" userInfo:nil];
+                @throw exception;
+            }
+            initialized = YES;
+            LOG(SMT_LOG_INFO, @"Successfully initialized library");
         }
-        if (user_id == nil || [user_id length] <= 0)
-        {
-            errorString = @"user_id cannot be nil or empty";
+        else {
+            LOG(SMT_LOG_WARN, @"Duplicate Initialization call");
         }
-        
-        if(errorString != nil)
-        {
-            exception = [NSException exceptionWithName:@"InvalidInitializationException" reason:errorString userInfo:nil];
-            @throw exception;
-        }
-        NSMutableDictionary * userParams = [NSMutableDictionary dictionaryWithObjectsAndKeys: api_key, @"api_key", user_id, @"uid", nil];
-        
-        [config initialize:userParams:debug];
-        trackerEngine = [[OMTEngine alloc] init];
-        channelEngine = [[OMTChannelEngine alloc] init];
-        BOOL result = [trackerEngine initialize];
-        if(!result)
-        {
-            exception = [NSException exceptionWithName:@"InvalidInitializationException" reason:@"Error Initializing TrackerEngine" userInfo:nil];
-            @throw exception;
-        }
-        initialized = YES;
-        LOG(SMT_LOG_INFO, @"Successfully initialized library");
-    }
-    else {
-        LOG(SMT_LOG_WARN, @"Duplicate Initialization call");
     }
 }
 
