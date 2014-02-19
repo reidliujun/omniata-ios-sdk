@@ -163,15 +163,6 @@ static OMTChannelEngine *channelEngine;
     return platform;
 }
 
-+ (void)flushEvents
-{
-    if (!initialized)
-    {
-        @throw [NSException exceptionWithName:@"PrematureTrackingException" reason:@"library is not yet initialized" userInfo:nil];
-    }
-    [trackerEngine flushEventsQueue];
-}
-
 + (void)loadMessagesForChannel:(NSUInteger)channelID completionHandler:(void (^)(OMT_CHANNEL_STATUS))completionBlock {
     if (!initialized)
     {

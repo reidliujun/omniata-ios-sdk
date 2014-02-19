@@ -33,15 +33,14 @@
         while (![eventProcessorThread isCancelled]) {
             @autoreleasepool {
                 [self persistEvents];
-                [self uploadEvents:flush];
-                flush = NO;
+                [self uploadEvents];
             }
             [NSThread sleepForTimeInterval:EVENT_PROCESSOR_THREAD_DELAY];
         }
     }
 }
 
-- (void)uploadEvents:(BOOL)_flush {
+- (void)uploadEvents {
     
     if (![self getConfig]) {
         LOG(SMT_LOG_VERBOSE, @"Upload skipped as Config is not loaded");
@@ -59,13 +58,7 @@
     const NSUInteger batchUploadDelay = config.batchUploadDelay;
     
     if (eventCount > 0) {
-        if (_flush)  // thats a flush command
-        {
-            LOG(SMT_LOG_VERBOSE, @"upload triggered with FLUSH OVERRIDE");
-            eventCount = eventCount >= maxBatchCount ? maxBatchCount : eventCount;
-            upload = YES;
-        }
-        else if (elapsedTime >= batchUploadDelay) {
+        if (elapsedTime >= batchUploadDelay) {
             LOG(SMT_LOG_VERBOSE, @"upload triggered as elapsed time %.2f is greater than bachUploadDelay %d", elapsedTime, batchUploadDelay);
             eventCount = eventCount >= maxBatchCount ? maxBatchCount : eventCount;
             upload = YES;
@@ -156,13 +149,6 @@
     LOG(SMT_LOG_VERBOSE, @"Successfully added Event to the queue");
     
     return YES;
-}
-
-
-- (void)flushEventsQueue {
-    //set the flush flag.....
-    flush = TRUE;
-    LOG(SMT_LOG_INFO, @"FLUSH Enabled");
 }
 
 - (void)dealloc {
