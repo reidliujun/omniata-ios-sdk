@@ -10,52 +10,55 @@
 
 @interface iOmniataAPI()
 
-+(NSDictionary*)getDeviceParams;
++(NSDictionary*)createAutomaticParameters;
 +(NSString*)getHardware;
 
 @end
 
 @implementation iOmniataAPI
 static BOOL initialized = false;
+static BOOL automaticParametersEnabled = true;
 static OMTEngine * trackerEngine;
 static OMTChannelEngine *channelEngine;
 
 + (void)initializeWithApiKey:(NSString *)api_key UserId:(NSString *)user_id AndDebug:(BOOL)debug {
-    LOG(SMT_LOG_INFO, @"Initializing library");
-    OMTConfig * config = [OMTConfig instance];
-    if (!initialized) {
-        NSException *exception;
-        NSString * errorString;
-        if (api_key == nil || [api_key length] <= 0)
-        {
-            errorString = @"api_key cannot be nil or empty";
+    @synchronized(self) {
+        LOG(SMT_LOG_INFO, @"Initializing library");
+        OMTConfig * config = [OMTConfig instance];
+        if (!initialized) {
+            NSException *exception;
+            NSString * errorString;
+            if(api_key == nil || [api_key length] <= 0)
+            {
+                errorString = @"api_key cannot be nil or empty";
+            }
+            if (user_id == nil || [user_id length] <= 0)
+            {
+                errorString = @"user_id cannot be nil or empty";
+            }
+            
+            if(errorString != nil)
+            {
+                exception = [NSException exceptionWithName:@"InvalidInitializationException" reason:errorString userInfo:nil];
+                @throw exception;
+            }
+            NSMutableDictionary * userParams = [NSMutableDictionary dictionaryWithObjectsAndKeys: api_key, @"api_key", user_id, @"uid", nil];
+            
+            [config initialize:userParams:debug];
+            trackerEngine = [[OMTEngine alloc] init];
+            channelEngine = [[OMTChannelEngine alloc] init];
+            BOOL result = [trackerEngine initialize];
+            if(!result)
+            {
+                exception = [NSException exceptionWithName:@"InvalidInitializationException" reason:@"Error Initializing TrackerEngine" userInfo:nil];
+                @throw exception;
+            }
+            initialized = YES;
+            LOG(SMT_LOG_INFO, @"Successfully initialized library");
         }
-        if (user_id == nil || [user_id length] <= 0)
-        {
-            errorString = @"user_id cannot be nil or empty";
+        else {
+            LOG(SMT_LOG_WARN, @"Duplicate Initialization call");
         }
-        
-        if (errorString != nil)
-        {
-            exception = [NSException exceptionWithName:@"InvalidInitializationException" reason:errorString userInfo:nil];
-            @throw exception;
-        }
-        NSMutableDictionary * userParams = [NSMutableDictionary dictionaryWithObjectsAndKeys: api_key, @"api_key", user_id, @"uid", nil];
-        
-        [config initialize:userParams:debug];
-        trackerEngine = [[OMTEngine alloc] init];
-        channelEngine = [[OMTChannelEngine alloc] init];
-        BOOL result = [trackerEngine initialize];
-        if(!result)
-        {
-            exception = [NSException exceptionWithName:@"InvalidInitializationException" reason:@"Error Initializing TrackerEngine" userInfo:nil];
-            @throw exception;
-        }
-        initialized = YES;
-        LOG(SMT_LOG_INFO, @"Successfully initialized library");
-    }
-    else {
-        LOG(SMT_LOG_WARN, @"Duplicate Initialization call");
     }
 }
 
@@ -86,6 +89,7 @@ static OMTChannelEngine *channelEngine;
     
     NSMutableDictionary* mDict = [NSMutableDictionary dictionaryWithDictionary:param];
     [mDict setObject:type forKey:@"om_event_type"];
+    [mDict setObject:[NSNumber numberWithDouble:[OMTUtils getCurrentTimeSecs]] forKey:@"om_creation_time"];
     [mDict addEntriesFromDictionary:config.userParams];
     
     LOG(SMT_LOG_INFO, @"LE EVENT: %@", mDict);
@@ -121,36 +125,43 @@ static OMTChannelEngine *channelEngine;
 }
 
 + (BOOL)trackLoadEvent {
-    // Default Params    
-    return [iOmniataAPI trackEvent:@"om_load" : [iOmniataAPI getDeviceParams]];
+    return [iOmniataAPI trackLoadEventWithParameters:[NSMutableDictionary dictionary]];
 }
 
 + (BOOL)trackLoadEventWithParameters:(NSDictionary*)parameters {
     NSMutableDictionary* mdict = [NSMutableDictionary dictionaryWithDictionary:parameters];
-    [mdict addEntriesFromDictionary:[iOmniataAPI getDeviceParams]];
+    if (automaticParametersEnabled) {
+        [mdict addEntriesFromDictionary:[iOmniataAPI createAutomaticParameters]];
+    }
     return [iOmniataAPI trackEvent:@"om_load" : parameters];
 }
 
-+ (NSDictionary*) getDeviceParams {
++ (NSDictionary*) createAutomaticParameters {
+    NSString* omDevice = [iOmniataAPI getHardware];
+    NSString* omPlatform = @"ios";
+    NSString* omOsVersion = [[UIDevice currentDevice] systemVersion];
+    NSString* omSdkVersion = [iOmniataAPI getAgentVersion];
+
+    NSString* locale = [[NSLocale currentLocale] objectForKey:NSLocaleCountryCode];
+    NSString* model = [[UIDevice currentDevice] model];
     NSString* idfa = [[[ASIdentifierManager sharedManager] advertisingIdentifier] UUIDString];
     NSString* systemName = [[UIDevice currentDevice] systemName];
-    NSString* systemVersion = [[UIDevice currentDevice] systemVersion];
-    NSString* model = [[UIDevice currentDevice] model];
-    NSString* machine = [iOmniataAPI getHardware];
-    NSString* platform = @"iOS";
-    NSString* locale = [[NSLocale currentLocale] objectForKey:NSLocaleCountryCode];
-    
-    NSDictionary* params = [NSDictionary dictionaryWithObjectsAndKeys:
-                            idfa, @"om_ios_idfa",
-                            systemName, @"om_ios_sysname",
-                            systemVersion, @"om_ios_sysver",
-                            model, @"om_ios_model",
-                            machine, @"om_ios_hardware",
-                            platform, @"om_platform",
-                            locale, @"om_locale",
-                            nil];
-    
-    return params;
+
+    return [NSDictionary dictionaryWithObjectsAndKeys:
+            // Standard automatic parameters
+            omDevice, @"om_device",
+            omPlatform, @"om_platform",
+            omOsVersion, @"om_os_version",
+            omSdkVersion, @"om_sdk_version",
+            // Backwards compatibility / ios-specific
+            omDevice, @"om_ios_hardware",
+            locale, @"om_locale",
+            model, @"om_ios_model",
+            idfa, @"om_ios_idfa",
+            systemName, @"om_ios_sysname",
+            omOsVersion, @"om_ios_sysver",
+
+            nil];
 }
 
 + (NSString*) getHardware {
@@ -161,15 +172,6 @@ static OMTChannelEngine *channelEngine;
     NSString *platform = [NSString stringWithUTF8String:machine];
     free(machine);
     return platform;
-}
-
-+ (void)flushEvents
-{
-    if (!initialized)
-    {
-        @throw [NSException exceptionWithName:@"PrematureTrackingException" reason:@"library is not yet initialized" userInfo:nil];
-    }
-    [trackerEngine flushEventsQueue];
 }
 
 + (void)loadMessagesForChannel:(NSUInteger)channelID completionHandler:(void (^)(OMT_CHANNEL_STATUS))completionBlock {
@@ -189,7 +191,7 @@ static OMTChannelEngine *channelEngine;
 }
 
 + (NSString *)getAgentVersion {
-    return iOMT_TRACKER_VERSION;
+    return SDK_VERSION;
 }
 
 @end

@@ -170,12 +170,6 @@ static BOOL debug = false;
         }
         batchUploadDelay = [val unsignedIntValue];
 
-        val = [dictionary objectForKey:CONFIG_JSON_MIN_RETRY_DELAY];
-        if (!val) {
-            LOG(SMT_LOG_ERROR, @"Value not found for %@ in config", CONFIG_JSON_MIN_RETRY_DELAY);
-            return isSuccess;
-        }
-        retryInterval = [val unsignedIntValue];
         isSuccess = YES;
         LOG(SMT_LOG_INFO, @"Event CONFIG loaded successfully");
         LOG(SMT_LOG_VERBOSE, @"maxRetriesForEvents:%d", maxRetriesForEvents);

@@ -28,7 +28,7 @@ typedef enum {
  */
 /** Initialize the library to enable event tracking.
  
- This method should be first invoked before using the library for any tracking/ flushing etc. All the thread creation and loading of the
+ This method should be first invoked before using the library for any tracking etc. All the thread creation and loading of the
  persisted but not uploaded events are done in this method. Any calls to the other methods of this library will throw Exception.
  Throws NSException if user_id or api_key value is either nil or empty string.
  
@@ -119,13 +119,6 @@ typedef enum {
  @return BOOL YES for successful event addition for tracking and NO for failure.
  */
 + (BOOL)trackLoadEventWithParameters:(NSDictionary*)parameters;
-
-/** Flush the events.
- 
- This is an overriding call to flush all the existing or waiting events queue to the dispatched to the server. When this call is made, all the batch management criteria
- like upload interval, batch size limit etc are ignored and the internally queued up events will be dispatched immediately.
- */
-+ (void)flushEvents;
 
 + (void)loadMessagesForChannel:(NSUInteger)channelID completionHandler:(void(^)(OMT_CHANNEL_STATUS))completionBlock;
 

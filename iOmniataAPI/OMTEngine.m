@@ -32,8 +32,7 @@
         while (![eventProcessorThread isCancelled]) {
             @autoreleasepool {
                 [self persistEvents];
-                [self uploadEvents:flush];
-                flush = NO;
+                [self uploadEvents];
             }
             [NSThread sleepForTimeInterval:EVENT_PROCESSOR_THREAD_DELAY];
         }
@@ -42,15 +41,13 @@
     }
 }
 
-- (void)uploadEvents:(BOOL)_flush {
+- (void)uploadEvents {
     if (![self getConfig]) {
         LOG(SMT_LOG_VERBOSE, @"Upload skipped as Config is not loaded");
         return;
     }
     
     NSUInteger eventCount = [persistentEventQueue getCount];
-    NSUInteger numTries = 0;
-    NSUInteger retryInterval = 1;
     double currentTime = [OMTUtils getCurrentTimeSecs];
     double elapsedTime = currentTime - self->lastEventUploadTime;
     
@@ -59,13 +56,7 @@
     const NSUInteger batchUploadDelay = config.batchUploadDelay;
     
     if (eventCount > 0) {
-        if (_flush) // thats a flush command
-        {
-            LOG(SMT_LOG_VERBOSE, @"upload triggered with FLUSH OVERRIDE");
-            eventCount = eventCount >= maxBatchCount ? maxBatchCount : eventCount;
-            upload = YES;
-        }
-        else if (elapsedTime >= batchUploadDelay) {
+        if (elapsedTime >= batchUploadDelay) {
             LOG(SMT_LOG_VERBOSE, @"upload triggered as elapsed time %.2f is greater than bachUploadDelay %d", elapsedTime, batchUploadDelay);
             eventCount = eventCount >= maxBatchCount ? maxBatchCount : eventCount;
             upload = YES;
@@ -85,13 +76,26 @@
         BOOL internetConnected = [OMTUtils connectedToNetwork];
         if (internetConnected) {
             offlineDetected = NO;
-            retryInterval = config.retryInterval;
+
             // batchQueue has eventCount elements...
+
             OMTQueue *batchQueue = [persistentEventQueue getSubQueue:eventCount];
             
             // ...mDict has one
             NSMutableDictionary* mDict = [NSMutableDictionary dictionaryWithDictionary:[batchQueue remove]];
-            // [mDict addEntriesFromDictionary:config.userParams];
+
+            NSNumber *omCreationTime = [mDict objectForKey:@"om_creation_time"];
+            if (omCreationTime != nil)
+            {
+                [mDict removeObjectForKey:@"om_creation_time"];
+                [mDict setObject:[NSNumber numberWithDouble:([OMTUtils getCurrentTimeSecs] - [omCreationTime doubleValue])] forKey:@"om_delta"];
+            }
+            else {
+                // Backwards compatibility for old events in the queue that don't have om_creation_time.
+                // Obviously value of om_delta is > 0, but know way to calculate, so just using 0.
+                [mDict setObject:[NSNumber numberWithInt:0] forKey:@"om_delta"];
+            }
+            //          [mDict addEntriesFromDictionary:config.userParams];
             
             NSMutableString *url = [NSMutableString stringWithString:[config getURL:SMT_SERVER_TRACK]];
             [url appendString:@"?"];
@@ -101,12 +105,20 @@
             NSInteger responseCode = INTERNAL_SERVER_ERROR;
             NSString *response;
             
+            NSUInteger numTries = 0;
             while (responseCode > HTTP_BAD_REQUEST && numTries < maxTries) {
                 responseCode = [OMTUtils getFromURL:url:&response];
+                
                 if (responseCode > HTTP_BAD_REQUEST) {
                     numTries++;
-                    LOG(SMT_LOG_ERROR, @"Tracking event not successful, will retry. Attempt: %d", numTries);
-                    [NSThread sleepForTimeInterval:retryInterval];
+                    
+                    NSUInteger sleep = SLEEP_TIME * pow(2, numTries);
+                    if (sleep > MAX_SLEEP) {
+                        sleep = MAX_SLEEP;
+                    }
+
+                    LOG(SMT_LOG_ERROR, @"Tracking event unsuccessful, will retry. Attempt: %d. Sleep %d", numTries, sleep);
+                    [NSThread sleepForTimeInterval:sleep];
                 }
             }
             
@@ -156,12 +168,6 @@
     LOG(SMT_LOG_VERBOSE, @"Successfully added Event to the queue");
     
     return YES;
-}
-
-- (void)flushEventsQueue {
-    //set the flush flag.....
-    flush = TRUE;
-    LOG(SMT_LOG_INFO, @"FLUSH Enabled");
 }
 
 - (void)dealloc {
