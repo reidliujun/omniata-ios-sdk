@@ -167,6 +167,7 @@ static OMTChannelEngine *channelEngine;
     NSString* omPlatform = @"ios";
     NSString* omOsVersion = [[UIDevice currentDevice] systemVersion];
     NSString* omSdkVersion = [iOmniataAPI getAgentVersion];
+    NSInteger omDiscarded = [trackerEngine getDiscarded];
 
     NSString* locale = [[NSLocale currentLocale] objectForKey:NSLocaleCountryCode];
     NSString* model = [[UIDevice currentDevice] model];
@@ -179,6 +180,7 @@ static OMTChannelEngine *channelEngine;
             omPlatform, @"om_platform",
             omOsVersion, @"om_os_version",
             omSdkVersion, @"om_sdk_version",
+            omDiscarded, OM_DISCARDED,
             // Backwards compatibility / ios-specific
             omDevice, @"om_ios_hardware",
             locale, @"om_locale",

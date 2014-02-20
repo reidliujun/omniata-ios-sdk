@@ -98,12 +98,32 @@
             }
             
             if (responseCode > HTTP_BAD_REQUEST) {
-                LOG(SMT_LOG_ERROR, @"Max tries reached. Deleting events");
+                LOG(SMT_LOG_ERROR, @"Discarding event");
+                [self incrementDiscarded];
             }
             
             [persistentEventQueue remove];
             [persistentEventQueue save];
         }
+    }
+}
+
+/**
+ * Increments in the persistent storage the total count of discarded events.
+ */
+- (void)incrementDiscarded {
+    @synchronized(self) {
+        NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+        [userDefaults setInteger:[userDefaults integerForKey:OM_DISCARDED] + 1 forKey:OM_DISCARDED];
+    }
+}
+
+/**
+ * Gets from the persistent storage the total count of discarded events.
+ */
+- (NSInteger)getDiscarded {
+    @synchronized(self) {
+        return [[NSUserDefaults standardUserDefaults] integerForKey:OM_DISCARDED];
     }
 }
 

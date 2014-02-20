@@ -31,6 +31,8 @@ NSUInteger const HTTP_BAD_REQUEST = 400;
 NSUInteger const SLEEP_TIME = 1;
 NSUInteger const MAX_SLEEP = 64;
 NSString *const ERROR = @"ERROR";
+NSString *const OM_DISCARDED = @"om_discarded";
+
 
 //SERVER
 NSString *const ROOT_URL = @"https://api.omniata.com/";

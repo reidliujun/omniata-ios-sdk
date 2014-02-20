@@ -23,5 +23,6 @@
 
 
 - (BOOL)getConfig;
+- (NSInteger)getDiscarded;
 
 @end
