@@ -13,6 +13,18 @@ typedef enum {
     CHANNEL_MESSAGE_LOAD_FAILED
 } OMT_CHANNEL_STATUS;
 
+/**
+ * The different end results of an event sending.
+ */
+typedef enum {
+    EVENT_SUCCESS,
+    EVENT_FAILED,
+    EVENT_DISCARDED
+} OMT_EVENT_STATUS;
+
+
+typedef void (^EventCallbackBlock)(OMT_EVENT_STATUS, NSUInteger retry);
+
 /** This class contains the set of static methods that you can use for event tracking.
  
  This library uses an event processor thread and event uploader thread. The former will iterate through the queue of events added and
@@ -32,10 +44,24 @@ typedef enum {
  persisted but not uploaded events are done in this method. Any calls to the other methods of this library will throw Exception.
  Throws NSException if user_id or api_key value is either nil or empty string.
  
+ The eventCallbackBlock-block is called after an event has been succesfully sent (EVENT_SUCCESS),
+ after an event sending failed (EVENT_FAILED) and after an event has been discarded after too many retries (EVENT_DISCARDED).
+ The set callback doesn't survive app restart, i.e. after app restart no callback is set (if not explicitely set).
+ Because of that the application code cannot assume that the callback is called for events that are tracked after setEventCallback is called -
+ it is possible that after calling setEventCallback, events are tracked, and the app is stopped and restarted and the events are sent w/o callback.
+ 
  @param user_id The user_id given by the application. This cannot be nil or empty.
  @param api_key The key identifier for the application. This cannot be nil or empty.
+ @param eventCallbackBlock The EventCallbackBlock to receive information of event sending success and failures. Can be nil.
+ */
++ (void)initializeWithApiKey:(NSString *)api_key UserId:(NSString *)user_id AndDebug:(BOOL)debug EventCallbackBlock:(EventCallbackBlock) eventCallbackBlock;
+
+/**
+ Calls initializeWithApiKey with EventCallbackBlock nil.
  */
 + (void)initializeWithApiKey:(NSString *)api_key UserId:(NSString *)user_id AndDebug:(BOOL)debug;
+
+
 /**---------------------------------------------------------------------------------------
  * @name Debugging
  *  ---------------------------------------------------------------------------------------
@@ -65,6 +91,10 @@ typedef enum {
  After setting this all events moving forward will utilize this user id.
  */
 + (void)setUserId:(NSString*)user_id;
+
+/** Sets a callback for event sending.
+ */
++ (void)setEventCallback:(EventCallbackBlock) eventCallback;
 
 /**---------------------------------------------------------------------------------------
  * @name Tracking

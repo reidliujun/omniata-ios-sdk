@@ -10,8 +10,10 @@
     
 }
 
-- (BOOL)initialize {
+- (BOOL)initialize:(EventCallbackBlock) _eventCallback {
     offlineDetected = NO;
+    
+    eventCallback = _eventCallback;
     
     config = [OMTConfig instance];
     
@@ -85,8 +87,10 @@
                 responseCode = [OMTUtils getFromURL:url:&response];
                 
                 if (responseCode > HTTP_BAD_REQUEST) {
+                    [self notifyEventCallback:EVENT_FAILED NumTries:numTries];
+
                     numTries++;
-                    
+
                     NSUInteger sleep = SLEEP_TIME * pow(2, numTries);
                     if (sleep > MAX_SLEEP) {
                         sleep = MAX_SLEEP;
@@ -95,16 +99,35 @@
                     LOG(SMT_LOG_ERROR, @"Tracking event unsuccessful, will retry. Attempt: %d. Sleep %d", numTries, sleep);
                     [NSThread sleepForTimeInterval:sleep];
                 }
+                else {
+                    [self notifyEventCallback:EVENT_SUCCESS NumTries:numTries];
+                }
             }
             
             if (responseCode > HTTP_BAD_REQUEST) {
                 LOG(SMT_LOG_ERROR, @"Discarding event");
                 [self incrementDiscarded];
+                [self notifyEventCallback:EVENT_DISCARDED NumTries:numTries];
             }
             
             [persistentEventQueue remove];
             [persistentEventQueue save];
         }
+    }
+}
+
+- (void)setEventCallback:(EventCallbackBlock) _eventCallback {
+    @synchronized(self) {
+        self.eventCallback = _eventCallback;
+    }
+}
+
+- (void)notifyEventCallback:(OMT_EVENT_STATUS) eventStatus NumTries:(NSUInteger)numTries {
+    if (eventCallback != nil)
+    {
+        dispatch_sync(dispatch_get_main_queue(), ^(void) {
+            eventCallback(eventStatus, numTries);
+        });
     }
 }
 

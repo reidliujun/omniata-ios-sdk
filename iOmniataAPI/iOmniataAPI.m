@@ -22,6 +22,10 @@ static OMTEngine * trackerEngine;
 static OMTChannelEngine *channelEngine;
 
 + (void)initializeWithApiKey:(NSString *)api_key UserId:(NSString *)user_id AndDebug:(BOOL)debug {
+    [self initializeWithApiKey:api_key UserId:user_id AndDebug:debug EventCallbackBlock:nil];
+}
+
++ (void)initializeWithApiKey:(NSString *)api_key UserId:(NSString *)user_id AndDebug:(BOOL)debug EventCallbackBlock:(EventCallbackBlock) eventCallback {
     NSMutableDictionary *userParams;
     
     LOG(SMT_LOG_INFO, @"Initializing library");
@@ -38,7 +42,7 @@ static OMTChannelEngine *channelEngine;
             [[OMTConfig instance] initialize:userParams:debug];
             trackerEngine = [[OMTEngine alloc] init];
             channelEngine = [[OMTChannelEngine alloc] init];
-            BOOL result = [trackerEngine initialize];
+            BOOL result = [trackerEngine initialize:eventCallback];
             if(!result) {
                 @throw[NSException exceptionWithName:@"InvalidInitializationException" reason:@"Error Initializing TrackerEngine" userInfo:nil];
             }
@@ -66,6 +70,13 @@ static OMTChannelEngine *channelEngine;
     @synchronized(self) {
         [self assertInitialized];
         [[OMTConfig instance].userParams setObject:user_id forKey:@"uid"];
+    }
+}
+
++ (void)setEventCallback:(EventCallbackBlock) eventCallback {
+    @synchronized(self) {
+        [self assertInitialized];
+        [trackerEngine setEventCallback:eventCallback];
     }
 }
 
