@@ -159,7 +159,7 @@ static OMTChannelEngine *channelEngine;
     if (automaticParametersEnabled) {
         [mdict addEntriesFromDictionary:[iOmniataAPI createAutomaticParameters]];
     }
-    return [iOmniataAPI trackEvent:@"om_load" : parameters];
+    return [iOmniataAPI trackEvent:@"om_load" : mdict];
 }
 
 + (NSDictionary*) createAutomaticParameters {

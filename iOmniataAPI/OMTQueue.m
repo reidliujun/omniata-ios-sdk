@@ -107,6 +107,16 @@
     return success;
 }
 
+- (id)peek {
+    id object = nil;
+    [queLock lock];
+    if ([queue count] > 0) {
+        object = [queue objectAtIndex:0];
+    }
+    [queLock unlock];
+    return object;
+}
+
 - (BOOL)save {
     return [self writeToFile];
 }

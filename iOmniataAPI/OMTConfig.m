@@ -114,22 +114,14 @@ static BOOL debug = false;
     BOOL updated = NO;
     NSString *string;
     
-    //[OMTUtils getFromURL:[self getURL:SMT_SERVER_CONFIG] :&string];
-    if (false && [string rangeOfString:ERROR].location == NSNotFound) //if string has no value that contains "ERROR";//todo:Jijo: bad error check. change it later to more readable.
-    {
-        LOG(SMT_LOG_INFO, @"configuration received from server");
-    }
-    else {
-        LOG(SMT_LOG_WARN, @"configuration not received from server. Loading defaults");
-        
-        string = @"{ \n"
-        "    \"max_track_retries\":3, \n"
-        "    \"max_channel_retries\":3, \n"
-        "    \"max_batch_size\":1, \n"
-        "    \"max_batch_delay\":0, \n"
-        "    \"retry_delay\":4 \n"
-        "} ";
-    }
+    string = @"{ \n"
+    "    \"max_track_retries\":10, \n"
+    "    \"max_channel_retries\":3, \n"
+    "    \"max_batch_size\":1, \n"
+    "    \"max_batch_delay\":0, \n"
+    "    \"retry_delay\":4 \n"
+    "} ";
+    
     updated = [self initEventConfig:string];
     return updated;
 }

@@ -14,6 +14,8 @@
 
 - (id)remove;
 
+- (id)peek;
+
 -(void)removeBlock:(NSUInteger)count;
 
 -(OMTQueue *) getSubQueue:(NSUInteger) count;

@@ -15,7 +15,8 @@ NSString *const EVENT_POST_KEY_REF_APP_KEY = @"ref_app_key";
 NSString *const EVENT_POST_KEY_TIME = @"time";
 NSString *const EVENT_LOG_FILE_NAME = @"smt.events.log";
 NSString *const EVENT_LOG_FILE_DIR =  @"tmp";
-NSUInteger const EVENT_PROCESSOR_THREAD_DELAY = 2;
+NSUInteger const EVENT_PROCESSOR_THREAD_DELAY = 1;
+NSUInteger const EVENT_PERSIST_THREAD_DELAY = 1;
 NSString* const EVENT_POST_KEY_EVENT = @"events";
 NSString* const EVENT_POST_KEY_USER_PARAMS = @"usr_params";
 NSString* const EVENT_POST_KEY_API_KEY = @"api_key";
@@ -33,7 +34,7 @@ NSString *const ERROR = @"ERROR";
 
 //SERVER
 NSString *const ROOT_URL = @"https://api.omniata.com/";
-NSString *const TEST_URL = @"https://api-test.omniata.com/";
+NSString *const TEST_URL = @"http://127.0.0.1:8000/"; //"@"https://api-test.omniata.com/";
 NSString *const EVENTS_TRACK_SUB_URL = @"event";
 NSString *const CONFIG_SUB_URL = @"get_conf?";
 NSString *const CHANNEL_MSGS_SUB_URL = @"channel?";

@@ -10,6 +10,7 @@
 
     OMTQueue *mEventQueue;
     OMTQueue *persistentEventQueue;
+    NSThread *eventPersistThread;
     NSThread *eventProcessorThread;
     BOOL eventConfigLoaded;
     double lastEventUploadTime;
