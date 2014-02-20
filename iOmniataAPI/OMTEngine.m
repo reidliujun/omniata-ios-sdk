@@ -74,6 +74,9 @@
                     // Obviously value of om_delta is > 0, but know way to calculate, so just using 0.
                     [event setObject:[NSNumber numberWithInt:0] forKey:@"om_delta"];
                 }
+                if (numTries > 0) {
+                    [event setObject:[NSNumber numberWithInt:numTries] forKey:@"om_retry"];
+                }
                 
                 NSMutableString *url = [NSMutableString stringWithString:[config getURL:SMT_SERVER_TRACK]];
                 [url appendString:@"?"];
