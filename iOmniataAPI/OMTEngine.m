@@ -53,20 +53,11 @@
             // NOTE: disabled "batch" functionality since default batch size was always one
             NSMutableDictionary* event = [persistentEventQueue peek];
 
+            // Clean parameters that must not be sent from event
             NSNumber *omCreationTime = [event objectForKey:@"om_creation_time"];
             if (omCreationTime != nil) {
                 [event removeObjectForKey:@"om_creation_time"];
-                [event setObject:[NSNumber numberWithLong:([OMTUtils getCurrentTimeSecs] - [omCreationTime doubleValue])] forKey:@"om_delta"];
             }
-            else {
-                // Backwards compatibility for old events in the queue that don't have om_creation_time.
-                // Obviously value of om_delta is > 0, but know way to calculate, so just using 0.
-                [event setObject:[NSNumber numberWithInt:0] forKey:@"om_delta"];
-            }
-            
-            NSMutableString *url = [NSMutableString stringWithString:[config getURL:SMT_SERVER_TRACK]];
-            [url appendString:@"?"];
-            [url appendString:[OMTUtils joinDictionaryByString:event :@"&"]];
             
             NSUInteger maxTries = config.maxRetriesForEvents;
             NSInteger responseCode = INTERNAL_SERVER_ERROR;
@@ -74,6 +65,20 @@
             
             NSUInteger numTries = 0;
             while (responseCode > HTTP_BAD_REQUEST && numTries < maxTries) {
+                // Add (or replace) om_delta. Needs to be calculated separately for each retry, because it's function of time
+                if (omCreationTime != nil) {
+                    [event setObject:[NSNumber numberWithLong:([OMTUtils getCurrentTimeSecs] - [omCreationTime doubleValue])] forKey:@"om_delta"];
+                }
+                else {
+                    // Backwards compatibility for old events in the queue that don't have om_creation_time.
+                    // Obviously value of om_delta is > 0, but know way to calculate, so just using 0.
+                    [event setObject:[NSNumber numberWithInt:0] forKey:@"om_delta"];
+                }
+                
+                NSMutableString *url = [NSMutableString stringWithString:[config getURL:SMT_SERVER_TRACK]];
+                [url appendString:@"?"];
+                [url appendString:[OMTUtils joinDictionaryByString:event :@"&"]];
+                
                 responseCode = [OMTUtils getFromURL:url:&response];
                 
                 if (responseCode > HTTP_BAD_REQUEST) {
