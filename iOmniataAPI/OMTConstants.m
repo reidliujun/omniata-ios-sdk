@@ -36,7 +36,11 @@ NSString *const OM_DISCARDED = @"om_discarded";
 
 //SERVER
 NSString *const ROOT_URL = @"https://api.omniata.com/";
+#ifdef DEVELOPMENT
+NSString *const TEST_URL = @"http://localhost:8000/";
+#else
 NSString *const TEST_URL = @"https://api-test.omniata.com/";
+#endif
 NSString *const EVENTS_TRACK_SUB_URL = @"event";
 NSString *const CONFIG_SUB_URL = @"get_conf?";
 NSString *const CHANNEL_MSGS_SUB_URL = @"channel?";
