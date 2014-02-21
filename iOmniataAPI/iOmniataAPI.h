@@ -1,6 +1,6 @@
 #import <Foundation/Foundation.h>
 
-//#define DEVELOPMENT
+#define DEVELOPMENT
 
 typedef enum {
     SMT_LOG_NONE = 1,
@@ -25,7 +25,7 @@ typedef enum {
 } OMT_EVENT_STATUS;
 
 
-typedef void (^EventCallbackBlock)(OMT_EVENT_STATUS, NSUInteger retry);
+typedef void (^EventCallbackBlock)(NSDictionary* event, OMT_EVENT_STATUS status, NSUInteger retry);
 
 /** This class contains the set of static methods that you can use for event tracking.
  

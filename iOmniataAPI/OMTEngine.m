@@ -50,68 +50,82 @@
     NSUInteger eventCount = [persistentEventQueue getCount];
     
     if (eventCount > 0) {
-        if ([OMTUtils connectedToNetwork]) {
+        if (![OMTUtils connectedToNetwork]) {
             
+            // Not connected to network, sleep and try again
+            [NSThread sleepForTimeInterval:EVENT_PROCESSOR_RETRY_CONNECTIVITY_DELAY];
+            
+        } else {
+        
             // NOTE: disabled "batch" functionality since default batch size was always one
             NSMutableDictionary* event = [persistentEventQueue peek];
-
-            // Clean parameters that must not be sent from event
-            NSNumber *omCreationTime = [event objectForKey:@"om_creation_time"];
-            if (omCreationTime != nil) {
-                [event removeObjectForKey:@"om_creation_time"];
-            }
             
             NSUInteger maxTries = config.maxRetriesForEvents;
-            NSInteger responseCode = INTERNAL_SERVER_ERROR;
+            NSInteger responseCode;
             NSString *response;
             
-            NSUInteger numTries = 0;
-            while (responseCode > HTTP_BAD_REQUEST && numTries < maxTries) {
-                // Add (or replace) om_delta. Needs to be calculated separately for each retry, because it's function of time
-                if (omCreationTime != nil) {
-                    [event setObject:[NSNumber numberWithLong:([OMTUtils getCurrentTimeSecs] - [omCreationTime doubleValue])] forKey:@"om_delta"];
-                }
-                else {
-                    // Backwards compatibility for old events in the queue that don't have om_creation_time.
-                    // Obviously value of om_delta is > 0, but know way to calculate, so just using 0.
-                    [event setObject:[NSNumber numberWithInt:0] forKey:@"om_delta"];
-                }
-                if (numTries > 0) {
-                    [event setObject:[NSNumber numberWithInt:numTries] forKey:@"om_retry"];
-                }
+            // Add (or replace) om_delta. Needs to be calculated separately for each retry, because it's function of time
+            NSNumber *omCreationTime = [event objectForKey:@"om_creation_time"];
+            if (omCreationTime != nil) {
+                NSNumber* omDelta = [NSNumber numberWithLong:([OMTUtils getCurrentTimeSecs] - [omCreationTime doubleValue])];
+                [event setObject:omDelta forKey:@"om_delta"];
+            }
+            else {
+                // Backwards compatibility for old events in the queue that don't have om_creation_time.
+                // Obviously value of om_delta is > 0, but know way to calculate, so just using 0.
                 
-                NSMutableString *url = [NSMutableString stringWithString:[config getURL:SMT_SERVER_TRACK]];
-                [url appendString:@"?"];
-                [url appendString:[OMTUtils joinDictionaryByString:event :@"&"]];
+                // Maybe we don't want to mess with the average delta value, so avoiding for now --Pedro
+                //[event setObject:[NSNumber numberWithInt:0] forKey:@"om_delta"];
+            }
                 
-                responseCode = [OMTUtils getFromURL:url:&response];
+            NSMutableString *url = [NSMutableString stringWithString:[config getURL:SMT_SERVER_TRACK]];
+            [url appendString:@"?"];
                 
-                if (responseCode > HTTP_BAD_REQUEST) {
-                    [self notifyEventCallback:EVENT_FAILED NumTries:numTries];
-
-                    numTries++;
-
-                    NSUInteger sleep = SLEEP_TIME * pow(2, numTries);
+            // Clean parameters that must not be sent from event
+            NSMutableDictionary* eventCopy = [NSMutableDictionary dictionaryWithDictionary:event];
+            [eventCopy removeObjectForKey:@"om_creation_time"];
+                
+            [url appendString:[OMTUtils joinDictionaryByString:eventCopy :@"&"]];
+                
+            responseCode = [OMTUtils getFromURL:url:&response];
+            
+            NSNumber* numTries = [event objectForKey:@"om_retry"];
+            
+            if (numTries == nil) {
+                // First try, start marking retry count
+                numTries = [NSNumber numberWithInt:1];
+            } else {
+                numTries = [NSNumber numberWithInt:[numTries intValue] + 1];
+            }
+            
+            if (responseCode >= HTTP_BAD_REQUEST) {
+                [event setObject:numTries forKey:@"om_retry"];
+                [persistentEventQueue save]; // Ensure retry count gets persisted
+                
+                [self notifyEventCallback:event WithStatus:EVENT_FAILED AndNumTries:[numTries intValue]];
+                
+                if ([numTries intValue] < maxTries) {
+                    // Do retry
+                    NSUInteger sleep = SLEEP_TIME * pow(2, [numTries intValue]);
                     if (sleep > MAX_SLEEP) {
                         sleep = MAX_SLEEP;
                     }
-
+                    
                     LOG(SMT_LOG_ERROR, @"Tracking event unsuccessful, will retry. Attempt: %d. Sleep %d", numTries, sleep);
                     [NSThread sleepForTimeInterval:sleep];
+                } else {
+                    // Max retries reached, discard event
+                    LOG(SMT_LOG_ERROR, @"Discarding event");
+                    [self incrementDiscarded];
+                    [self notifyEventCallback:event WithStatus:EVENT_DISCARDED AndNumTries:[numTries intValue]];
+                    [persistentEventQueue remove];
+                    [persistentEventQueue save];
                 }
-                else {
-                    [self notifyEventCallback:EVENT_SUCCESS NumTries:numTries];
-                }
+            } else {
+                [self notifyEventCallback:event WithStatus:EVENT_SUCCESS AndNumTries:[numTries intValue]];
+                [persistentEventQueue remove];
+                [persistentEventQueue save];
             }
-            
-            if (responseCode > HTTP_BAD_REQUEST) {
-                LOG(SMT_LOG_ERROR, @"Discarding event");
-                [self incrementDiscarded];
-                [self notifyEventCallback:EVENT_DISCARDED NumTries:numTries];
-            }
-            
-            [persistentEventQueue remove];
-            [persistentEventQueue save];
         }
     }
 }
@@ -122,11 +136,10 @@
     }
 }
 
-- (void)notifyEventCallback:(OMT_EVENT_STATUS) eventStatus NumTries:(NSUInteger)numTries {
-    if (eventCallback != nil)
-    {
+- (void)notifyEventCallback:(NSDictionary*)event WithStatus:(OMT_EVENT_STATUS)eventStatus AndNumTries:(NSUInteger)numTries {
+    if (eventCallback != nil) {
         dispatch_sync(dispatch_get_main_queue(), ^(void) {
-            eventCallback(eventStatus, numTries);
+            eventCallback(event, eventStatus, numTries);
         });
     }
 }

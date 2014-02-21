@@ -16,6 +16,7 @@ NSString *const EVENT_POST_KEY_TIME = @"time";
 NSString *const EVENT_LOG_FILE_NAME = @"smt.events.log";
 NSString *const EVENT_LOG_FILE_DIR =  @"tmp";
 NSUInteger const EVENT_PROCESSOR_THREAD_DELAY = 1;
+NSUInteger const EVENT_PROCESSOR_RETRY_CONNECTIVITY_DELAY = 16;
 NSUInteger const EVENT_PERSIST_THREAD_DELAY = 1;
 NSString* const EVENT_POST_KEY_EVENT = @"events";
 NSString* const EVENT_POST_KEY_USER_PARAMS = @"usr_params";

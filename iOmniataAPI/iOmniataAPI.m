@@ -37,7 +37,7 @@ static OMTChannelEngine *channelEngine;
             
             userParams = [[NSMutableDictionary alloc] init];
             [userParams setObject:api_key forKey:@"api_key"];
-            [userParams setObject:user_id forKey:@"user_id"];
+            [userParams setObject:user_id forKey:@"uid"];
             
             [[OMTConfig instance] initialize:userParams:debug];
             trackerEngine = [[OMTEngine alloc] init];
