@@ -10,8 +10,10 @@
     
 }
 
-- (BOOL)initialize {
+- (BOOL)initialize:(EventCallbackBlock) _eventCallback {
     offlineDetected = NO;
+    
+    eventCallback = _eventCallback;
     
     config = [OMTConfig instance];
     
@@ -48,54 +50,116 @@
     NSUInteger eventCount = [persistentEventQueue getCount];
     
     if (eventCount > 0) {
-        if ([OMTUtils connectedToNetwork]) {
+        if (![OMTUtils connectedToNetwork]) {
             
+            // Not connected to network, sleep and try again
+            [NSThread sleepForTimeInterval:EVENT_PROCESSOR_RETRY_CONNECTIVITY_DELAY];
+            
+        } else {
+        
             // NOTE: disabled "batch" functionality since default batch size was always one
             NSMutableDictionary* event = [persistentEventQueue peek];
-
+            
+            NSUInteger maxTries = config.maxRetriesForEvents;
+            NSInteger responseCode;
+            NSString *response;
+            
+            // Add (or replace) om_delta. Needs to be calculated separately for each retry, because it's function of time
             NSNumber *omCreationTime = [event objectForKey:@"om_creation_time"];
             if (omCreationTime != nil) {
-                [event removeObjectForKey:@"om_creation_time"];
-                [event setObject:[NSNumber numberWithLong:([OMTUtils getCurrentTimeSecs] - [omCreationTime doubleValue])] forKey:@"om_delta"];
+                NSNumber* omDelta = [NSNumber numberWithLong:([OMTUtils getCurrentTimeSecs] - [omCreationTime doubleValue])];
+                [event setObject:omDelta forKey:@"om_delta"];
             }
             else {
                 // Backwards compatibility for old events in the queue that don't have om_creation_time.
                 // Obviously value of om_delta is > 0, but know way to calculate, so just using 0.
-                [event setObject:[NSNumber numberWithInt:0] forKey:@"om_delta"];
+                
+                // Maybe we don't want to mess with the average delta value, so avoiding for now --Pedro
+                //[event setObject:[NSNumber numberWithInt:0] forKey:@"om_delta"];
             }
-            
+                
             NSMutableString *url = [NSMutableString stringWithString:[config getURL:SMT_SERVER_TRACK]];
             [url appendString:@"?"];
-            [url appendString:[OMTUtils joinDictionaryByString:event :@"&"]];
-            
-            NSUInteger maxTries = config.maxRetriesForEvents;
-            NSInteger responseCode = INTERNAL_SERVER_ERROR;
-            NSString *response;
-            
-            NSUInteger numTries = 0;
-            while (responseCode > HTTP_BAD_REQUEST && numTries < maxTries) {
-                responseCode = [OMTUtils getFromURL:url:&response];
                 
-                if (responseCode > HTTP_BAD_REQUEST) {
-                    numTries++;
-                    
-                    NSUInteger sleep = SLEEP_TIME * pow(2, numTries);
+            // Clean parameters that must not be sent from event
+            NSMutableDictionary* eventCopy = [NSMutableDictionary dictionaryWithDictionary:event];
+            [eventCopy removeObjectForKey:@"om_creation_time"];
+                
+            [url appendString:[OMTUtils joinDictionaryByString:eventCopy :@"&"]];
+                
+            responseCode = [OMTUtils getFromURL:url:&response];
+            
+            NSNumber* numTries = [event objectForKey:@"om_retry"];
+            
+            if (numTries == nil) {
+                // First try, start marking retry count
+                numTries = [NSNumber numberWithInt:1];
+            } else {
+                numTries = [NSNumber numberWithInt:[numTries intValue] + 1];
+            }
+            
+            if (responseCode >= HTTP_BAD_REQUEST) {
+                [event setObject:numTries forKey:@"om_retry"];
+                [persistentEventQueue save]; // Ensure retry count gets persisted
+                
+                [self notifyEventCallback:event WithStatus:EVENT_FAILED AndNumTries:[numTries intValue]];
+                
+                if ([numTries intValue] < maxTries) {
+                    // Do retry
+                    NSUInteger sleep = SLEEP_TIME * pow(2, [numTries intValue]);
                     if (sleep > MAX_SLEEP) {
                         sleep = MAX_SLEEP;
                     }
-
+                    
                     LOG(SMT_LOG_ERROR, @"Tracking event unsuccessful, will retry. Attempt: %d. Sleep %d", numTries, sleep);
                     [NSThread sleepForTimeInterval:sleep];
+                } else {
+                    // Max retries reached, discard event
+                    LOG(SMT_LOG_ERROR, @"Discarding event");
+                    [self incrementDiscarded];
+                    [self notifyEventCallback:event WithStatus:EVENT_DISCARDED AndNumTries:[numTries intValue]];
+                    [persistentEventQueue remove];
+                    [persistentEventQueue save];
                 }
+            } else {
+                [self notifyEventCallback:event WithStatus:EVENT_SUCCESS AndNumTries:[numTries intValue]];
+                [persistentEventQueue remove];
+                [persistentEventQueue save];
             }
-            
-            if (responseCode > HTTP_BAD_REQUEST) {
-                LOG(SMT_LOG_ERROR, @"Max tries reached. Deleting events");
-            }
-            
-            [persistentEventQueue remove];
-            [persistentEventQueue save];
         }
+    }
+}
+
+- (void)setEventCallback:(EventCallbackBlock) _eventCallback {
+    @synchronized(self) {
+        self.eventCallback = _eventCallback;
+    }
+}
+
+- (void)notifyEventCallback:(NSDictionary*)event WithStatus:(OMT_EVENT_STATUS)eventStatus AndNumTries:(NSUInteger)numTries {
+    if (eventCallback != nil) {
+        dispatch_sync(dispatch_get_main_queue(), ^(void) {
+            eventCallback(event, eventStatus, numTries);
+        });
+    }
+}
+
+/**
+ * Increments in the persistent storage the total count of discarded events.
+ */
+- (void)incrementDiscarded {
+    @synchronized(self) {
+        NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+        [userDefaults setInteger:[userDefaults integerForKey:OM_DISCARDED] + 1 forKey:OM_DISCARDED];
+    }
+}
+
+/**
+ * Gets from the persistent storage the total count of discarded events.
+ */
+- (NSInteger)getDiscarded {
+    @synchronized(self) {
+        return [[NSUserDefaults standardUserDefaults] integerForKey:OM_DISCARDED];
     }
 }
 

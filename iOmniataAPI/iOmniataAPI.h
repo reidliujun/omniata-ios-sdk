@@ -1,5 +1,7 @@
 #import <Foundation/Foundation.h>
 
+//#define DEVELOPMENT
+
 typedef enum {
     SMT_LOG_NONE = 1,
     SMT_LOG_ERROR,
@@ -13,12 +15,54 @@ typedef enum {
     CHANNEL_MESSAGE_LOAD_FAILED
 } OMT_CHANNEL_STATUS;
 
+/**
+ * The different end results of an event sending.
+ */
+typedef enum {
+    EVENT_SUCCESS,
+    EVENT_FAILED,
+    EVENT_DISCARDED
+} OMT_EVENT_STATUS;
+
+
+typedef void (^EventCallbackBlock)(NSDictionary* event, OMT_EVENT_STATUS status, NSUInteger retry);
+
 /** This class contains the set of static methods that you can use for event tracking.
  
  This library uses an event processor thread and event uploader thread. The former will iterate through the queue of events added and
  move them to a persistent queue (one that is archived to a file). The latter retrieves the persistent queue and upload them to the server as a batch of events.
  The minimum duration to upload the batch and maximum batch size will be retrieved from the server as a configuration.
  
+ 3rd party licenses:
+ 
+ SBJson
+ 
+ Copyright (C) 2009-2011 Stig Brautaset. All rights reserved.
+ 
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+ 
+ * Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 
+ * Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+ 
+ * Neither the name of the author nor the names of its contributors may be used
+ to endorse or promote products derived from this software without specific
+ prior written permission.
+ 
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+ FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 @interface iOmniataAPI : NSObject
@@ -32,10 +76,24 @@ typedef enum {
  persisted but not uploaded events are done in this method. Any calls to the other methods of this library will throw Exception.
  Throws NSException if user_id or api_key value is either nil or empty string.
  
+ The eventCallbackBlock-block is called after an event has been succesfully sent (EVENT_SUCCESS),
+ after an event sending failed (EVENT_FAILED) and after an event has been discarded after too many retries (EVENT_DISCARDED).
+ The set callback doesn't survive app restart, i.e. after app restart no callback is set (if not explicitely set).
+ Because of that the application code cannot assume that the callback is called for events that are tracked after setEventCallback is called -
+ it is possible that after calling setEventCallback, events are tracked, and the app is stopped and restarted and the events are sent w/o callback.
+ 
  @param user_id The user_id given by the application. This cannot be nil or empty.
  @param api_key The key identifier for the application. This cannot be nil or empty.
+ @param eventCallbackBlock The EventCallbackBlock to receive information of event sending success and failures. Can be nil.
+ */
++ (void)initializeWithApiKey:(NSString *)api_key UserId:(NSString *)user_id AndDebug:(BOOL)debug EventCallbackBlock:(EventCallbackBlock) eventCallbackBlock;
+
+/**
+ Calls initializeWithApiKey with EventCallbackBlock nil.
  */
 + (void)initializeWithApiKey:(NSString *)api_key UserId:(NSString *)user_id AndDebug:(BOOL)debug;
+
+
 /**---------------------------------------------------------------------------------------
  * @name Debugging
  *  ---------------------------------------------------------------------------------------
@@ -65,6 +123,10 @@ typedef enum {
  After setting this all events moving forward will utilize this user id.
  */
 + (void)setUserId:(NSString*)user_id;
+
+/** Sets a callback for event sending.
+ */
++ (void)setEventCallback:(EventCallbackBlock) eventCallback;
 
 /**---------------------------------------------------------------------------------------
  * @name Tracking
