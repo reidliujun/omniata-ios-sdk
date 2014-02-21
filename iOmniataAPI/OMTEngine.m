@@ -11,7 +11,6 @@
 }
 
 - (BOOL)initialize:(EventCallbackBlock) _eventCallback {
-    offlineDetected = NO;
     
     eventCallback = _eventCallback;
     
@@ -81,7 +80,8 @@
             NSMutableString *url = [NSMutableString stringWithString:[config getURL:SMT_SERVER_TRACK]];
             [url appendString:@"?"];
                 
-            // Clean parameters that must not be sent from event
+            // om_creation_time should not be sent, however we want to have it persist in case of retry
+            // therefore we will copy the event and remove it from the copy leaving it intact in the original event.
             NSMutableDictionary* eventCopy = [NSMutableDictionary dictionaryWithDictionary:event];
             [eventCopy removeObjectForKey:@"om_creation_time"];
                 
@@ -93,36 +93,36 @@
             
             if (numTries == nil) {
                 // First try, start marking retry count
-                numTries = [NSNumber numberWithInt:1];
+                numTries = [NSNumber numberWithUnsignedInteger:1];
             } else {
-                numTries = [NSNumber numberWithInt:[numTries intValue] + 1];
+                numTries = [NSNumber numberWithUnsignedInteger:[numTries unsignedIntegerValue] + 1];
             }
             
             if (responseCode >= HTTP_BAD_REQUEST) {
                 [event setObject:numTries forKey:@"om_retry"];
                 [persistentEventQueue save]; // Ensure retry count gets persisted
                 
-                [self notifyEventCallback:event WithStatus:EVENT_FAILED AndNumTries:[numTries intValue]];
+                [self notifyEventCallback:event WithStatus:EVENT_FAILED AndNumTries:[numTries unsignedIntegerValue]];
                 
-                if ([numTries intValue] < maxTries) {
+                if ([numTries unsignedIntegerValue] < maxTries) {
                     // Do retry
-                    NSUInteger sleep = SLEEP_TIME * pow(2, [numTries intValue]);
+                    NSUInteger sleep = SLEEP_TIME * pow(2, [numTries unsignedIntegerValue]);
                     if (sleep > MAX_SLEEP) {
                         sleep = MAX_SLEEP;
                     }
                     
-                    LOG(SMT_LOG_ERROR, @"Tracking event unsuccessful, will retry. Attempt: %d. Sleep %d", numTries, sleep);
+                    LOG(SMT_LOG_ERROR, @"Tracking event unsuccessful, will retry. Attempt: %d. Sleep %d", [numTries unsignedIntegerValue], sleep);
                     [NSThread sleepForTimeInterval:sleep];
                 } else {
                     // Max retries reached, discard event
                     LOG(SMT_LOG_ERROR, @"Discarding event");
                     [self incrementDiscarded];
-                    [self notifyEventCallback:event WithStatus:EVENT_DISCARDED AndNumTries:[numTries intValue]];
+                    [self notifyEventCallback:event WithStatus:EVENT_DISCARDED AndNumTries:[numTries unsignedIntegerValue]];
                     [persistentEventQueue remove];
                     [persistentEventQueue save];
                 }
             } else {
-                [self notifyEventCallback:event WithStatus:EVENT_SUCCESS AndNumTries:[numTries intValue]];
+                [self notifyEventCallback:event WithStatus:EVENT_SUCCESS AndNumTries:[numTries unsignedIntegerValue]];
                 [persistentEventQueue remove];
                 [persistentEventQueue save];
             }
