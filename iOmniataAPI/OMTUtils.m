@@ -16,7 +16,7 @@
     return [[NSDate date] timeIntervalSince1970];
 }
 
-+ (NSInteger)postToURL:(NSString *)urlStr :(NSString *)jsonStr :(NSString **)responseStr responseNeeded:(BOOL)responseNeeded{
++ (NSInteger)postToURL:(NSString *)urlStr :(NSString *)jsonStr :(NSString **)responseStr responseNeeded:(BOOL)responseNeeded {
     LOG(SMT_LOG_VERBOSE, @"SENDING_DATA");
     LOG(SMT_LOG_VERBOSE, @"URL : %@", urlStr);
     if (jsonStr == nil) {
@@ -34,7 +34,7 @@
     return [self connect:urlStr data:nil responseStr:responseStr responseNeeded:FALSE];
 }
 
-+ (NSInteger)connect:(NSString *)urlStr data:(NSString *)str responseStr:(NSString **)responseStr responseNeeded:(BOOL)responseNeeded{
++ (NSInteger)connect:(NSString *)urlStr data:(NSString *)str responseStr:(NSString **)responseStr responseNeeded:(BOOL)responseNeeded {
     NSInteger responseCode = INTERNAL_SERVER_ERROR;
     *responseStr = @"ERROR::Could Not Establish Connection";
     @try {
@@ -114,8 +114,10 @@
 + (NSString *)joinDictionaryByString:(NSDictionary *)dictionary :(NSString *)delimiter {
     NSMutableArray* parametersArray = [[NSMutableArray alloc] init];
     [dictionary enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
-        NSString* val = [OMTUtils urlEncodeString: [NSString stringWithFormat:@"%@", obj]];
-        [parametersArray addObject:[NSString stringWithFormat:@"%@=%@", key, val]];
+        NSString* encodedKey = [OMTUtils urlEncodeString: [NSString stringWithFormat:@"%@", key]];
+        NSString* encodedVal = [OMTUtils urlEncodeString: [NSString stringWithFormat:@"%@", obj]];
+
+        [parametersArray addObject:[NSString stringWithFormat:@"%@=%@", encodedKey, encodedVal]];
     }];
     return [parametersArray componentsJoinedByString:@"&"];
 }

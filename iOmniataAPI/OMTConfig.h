@@ -1,6 +1,7 @@
 #import <Foundation/Foundation.h>
 
 #include "iOmniataAPI.h"
+
 @interface OMTConfig : NSObject
 {
     @private
@@ -18,7 +19,6 @@
 @property(readonly, assign) NSUInteger retryInterval;
 @property(readonly, copy)   NSMutableDictionary *userParams;
 @property(readonly, assign) BOOL(^reachability)(void);
-
 
 +(OMTConfig *)instance;
 -(void) setLogType:(SMT_LOG) logVal;

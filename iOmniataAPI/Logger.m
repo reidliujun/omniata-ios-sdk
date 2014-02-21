@@ -1,9 +1,6 @@
 #import "Logger.h"
 #import "OMTConfig.h"
 
-
-
-
 @implementation Logger
 
 static unsigned int userLogType = 0;

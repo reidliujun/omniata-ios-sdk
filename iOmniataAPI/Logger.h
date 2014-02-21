@@ -1,8 +1,6 @@
 #import <Foundation/Foundation.h>
 #import "iOmniataAPI.h"
 
-
-
 @interface Logger : NSObject
 
 +(void)log:(SMT_LOG)log_Type :(NSString *) str :(NSString *)format, ...;

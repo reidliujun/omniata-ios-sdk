@@ -1,6 +1,5 @@
 #import <Foundation/Foundation.h>
 
-
 @interface OMTQueue : NSObject {
     NSRecursiveLock *queLock;
     NSMutableArray *queue;
@@ -14,6 +13,8 @@
 - (id)initWithArray:(NSArray *)array;
 
 - (id)remove;
+
+- (id)peek;
 
 -(void)removeBlock:(NSUInteger)count;
 
