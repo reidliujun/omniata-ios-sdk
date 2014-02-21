@@ -7,7 +7,7 @@ fi
 
 VERSION=$1
 
-XCODE_FRAMEWORK=iOmniataAPI.framework
+XCODE_FRAMEWORK=iOmniataAPI.framework.zip
 if [ ! -f "$XCODE_FRAMEWORK" ]; then
     echo "XCode Framework missing: $XCODE_FRAMEWORK. Build it first and copy it here and commit to Git"
     exit -1
