@@ -1,4 +1,3 @@
-#import <AdSupport/AdSupport.h>
 #import <CoreLocation/CoreLocation.h>
 #include <sys/types.h>
 #include <sys/sysctl.h>
@@ -182,7 +181,6 @@ static OMTChannelEngine *channelEngine;
 
     NSString* locale = [[NSLocale currentLocale] objectForKey:NSLocaleCountryCode];
     NSString* model = [[UIDevice currentDevice] model];
-    NSString* idfa = [[[ASIdentifierManager sharedManager] advertisingIdentifier] UUIDString];
     NSString* systemName = [[UIDevice currentDevice] systemName];
 
     return [NSDictionary dictionaryWithObjectsAndKeys:
@@ -196,7 +194,6 @@ static OMTChannelEngine *channelEngine;
             omDevice, @"om_ios_hardware",
             locale, @"om_locale",
             model, @"om_ios_model",
-            idfa, @"om_ios_idfa",
             systemName, @"om_ios_sysname",
             omOsVersion, @"om_ios_sysver",
 
