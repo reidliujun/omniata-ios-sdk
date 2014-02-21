@@ -1,6 +1,6 @@
 #import <Foundation/Foundation.h>
 
-#define DEVELOPMENT
+//#define DEVELOPMENT
 
 typedef enum {
     SMT_LOG_NONE = 1,
