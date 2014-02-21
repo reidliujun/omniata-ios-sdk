@@ -185,4 +185,11 @@ typedef void (^EventCallbackBlock)(NSDictionary* event, OMT_EVENT_STATUS status,
 + (void)loadMessagesForChannel:(NSUInteger)channelID completionHandler:(void(^)(OMT_CHANNEL_STATUS))completionBlock;
 
 + (NSArray *)getChannelMessages;
+
+/** Set a custom network reachability check. By default the code from Reachability sample application from Apple (v 3.5) is used for the check.
+ * If your application e.g. has a always connected socket, you're application knows better than Reachability whether the network is available.
+ * The block needs to be non-blocking, because it's call within the Channel API a call and should not block that. It also needs to be thread-safe.
+ */
++ (void)setReachability:(BOOL(^)(void))reachability;
+
 @end

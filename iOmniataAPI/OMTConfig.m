@@ -1,6 +1,7 @@
 #import "OMTConfig.h"
 #import "OMTUtils.h"
 #import "SBJson.h"
+#import "Reachability.h"
 
 ///////////////////////////SINGLETON/////////////////////
 @interface OMTConfig ()
@@ -59,6 +60,7 @@
 @synthesize retryInterval;
 @synthesize userParams;
 @synthesize maxRetriesForChannelMessages;
+@synthesize reachability;
 
 static SMT_LOG logType = SMT_LOG_NONE;
 static NSString *rooturl = nil;
@@ -79,6 +81,11 @@ static BOOL debug = false;
 - (void)initialize:(NSMutableDictionary *)param :(BOOL)dbg{
     debug = dbg;
     [self setUrls];
+   
+    [self setReachability:^{
+        return [OMTUtils defaultReachabilityCheck];
+    }];
+    
     self->userParams = param;
 }
 
@@ -171,6 +178,10 @@ static BOOL debug = false;
         LOG(SMT_LOG_VERBOSE, @"retryInterval:%d", retryInterval);
     }
     return isSuccess;
+}
+
+- (void)setReachability:(BOOL (^)(void))_reachability {
+    reachability = _reachability;
 }
 
 - (void)dealloc {

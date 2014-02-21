@@ -229,6 +229,11 @@ static OMTChannelEngine *channelEngine;
     return channelEngine.messages;
 }
 
++ (void)setReachability:(BOOL(^)(void))reachability {
+    [[OMTConfig instance] setReachability:reachability];
+}
+
+
 + (NSString *)getAgentVersion {
     return SDK_VERSION;
 }

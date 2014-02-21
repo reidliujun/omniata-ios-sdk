@@ -3,6 +3,7 @@
 #import "OMTUtils.h"
 #import "Logger.h"
 #import "Reachability.h"
+#import "OMTConfig.h"
 
 @interface OMTUtils ()
 //private methods
@@ -94,10 +95,14 @@
     return responseCode;
 }
 
-+ (BOOL)connectedToNetwork  {
-    Reachability * reachability = [Reachability reachabilityForInternetConnection];
-    NetworkStatus networkStatus = [reachability currentReachabilityStatus];
-    return !(networkStatus == NotReachable);
++ (BOOL)connectedToNetwork {
+    return [[OMTConfig instance] reachability]();
+}
+
++ (BOOL)defaultReachabilityCheck {
+    Reachability * reach = [Reachability reachabilityWithHostName:@"api.omniata.com"];
+    NetworkStatus networkStatus = [reach currentReachabilityStatus];
+    return (BOOL) !(networkStatus == NotReachable);
 }
 
 + (BOOL)isValidCurrencyCode:(NSString *)currencyCode
