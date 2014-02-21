@@ -6,13 +6,14 @@
 #import "OMTConfig.h"
 #import "SBJson.h"
 
-
 @implementation OMTEngine {
     
 }
 
-- (BOOL)initialize {
+- (BOOL)initialize:(EventCallbackBlock) _eventCallback {
     offlineDetected = NO;
+    
+    eventCallback = _eventCallback;
     
     config = [OMTConfig instance];
     
@@ -20,7 +21,10 @@
     NSString *path = [NSHomeDirectory() stringByAppendingPathComponent:EVENT_LOG_FILE_DIR];
     persistentEventQueue = [OMTQueue loadFromFile:[path stringByAppendingPathComponent:EVENT_LOG_FILE_NAME]];
     
+    eventPersistThread = [[NSThread alloc] initWithTarget:self selector:@selector(persistEvents:) object:self];
     eventProcessorThread = [[NSThread alloc] initWithTarget:self selector:@selector(processEvents:) object:self];
+    
+    [eventPersistThread start];
     [eventProcessorThread start];
     
     return YES;
@@ -28,11 +32,8 @@
 
 - (void)processEvents:(id)object {
     @autoreleasepool {
-        lastEventUploadTime = [OMTUtils getCurrentTimeSecs];
-        [self persistEvents];
         while (![eventProcessorThread isCancelled]) {
             @autoreleasepool {
-                [self persistEvents];
                 [self uploadEvents];
             }
             [NSThread sleepForTimeInterval:EVENT_PROCESSOR_THREAD_DELAY];
@@ -41,80 +42,125 @@
 }
 
 - (void)uploadEvents {
-    
     if (![self getConfig]) {
         LOG(SMT_LOG_VERBOSE, @"Upload skipped as Config is not loaded");
         return;
     }
     
     NSUInteger eventCount = [persistentEventQueue getCount];
-    NSUInteger numTries = 0;
-    NSUInteger retryInterval = 1;
-    double currentTime = [OMTUtils getCurrentTimeSecs];
-    double elapsedTime = currentTime - self->lastEventUploadTime;
-    
-    BOOL upload = NO;
-    const NSUInteger maxBatchCount = config.maxBatchSize;
-    const NSUInteger batchUploadDelay = config.batchUploadDelay;
     
     if (eventCount > 0) {
-        if (elapsedTime >= batchUploadDelay) {
-            LOG(SMT_LOG_VERBOSE, @"upload triggered as elapsed time %.2f is greater than bachUploadDelay %d", elapsedTime, batchUploadDelay);
-            eventCount = eventCount >= maxBatchCount ? maxBatchCount : eventCount;
-            upload = YES;
-        }
-        else if (eventCount >= maxBatchCount && !offlineDetected) {
-            LOG(SMT_LOG_VERBOSE, @"upload triggered as eventCount %d is greater than maxBatchSize %d", eventCount, maxBatchCount);
-            eventCount = maxBatchCount;
-            upload = YES;
-        }
-    }
-    else if (elapsedTime >= batchUploadDelay) {
-        LOG(SMT_LOG_VERBOSE, @"resetting last update time as event count is 0 and time has elapsed");
-        lastEventUploadTime = [OMTUtils getCurrentTimeSecs];
-    }
-    
-    if (upload) {
-        BOOL internetConnected = [OMTUtils connectedToNetwork];
-        if (internetConnected) {
-            offlineDetected = NO;
-            retryInterval = config.retryInterval;
-            OMTQueue *batchQueue = [persistentEventQueue getSubQueue:eventCount];
+        if (![OMTUtils connectedToNetwork]) {
             
-            NSMutableDictionary* mDict = [NSMutableDictionary dictionaryWithDictionary:[batchQueue remove]];
-            //          [mDict addEntriesFromDictionary:config.userParams];
+            // Not connected to network, sleep and try again
+            [NSThread sleepForTimeInterval:EVENT_PROCESSOR_RETRY_CONNECTIVITY_DELAY];
             
-            NSMutableString *url = [NSMutableString stringWithString:[config getURL:SMT_SERVER_TRACK]];
-            [url appendString:@"?"];
-            [url appendString:[OMTUtils joinDictionaryByString:mDict :@"&"]];
+        } else {
+        
+            // NOTE: disabled "batch" functionality since default batch size was always one
+            NSMutableDictionary* event = [persistentEventQueue peek];
             
             NSUInteger maxTries = config.maxRetriesForEvents;
-            NSInteger responseCode = INTERNAL_SERVER_ERROR;
+            NSInteger responseCode;
             NSString *response;
             
-            while (responseCode > HTTP_BAD_REQUEST && numTries < maxTries) {
-                responseCode = [OMTUtils getFromURL:url:&response];
-                if (responseCode > HTTP_BAD_REQUEST) {
-                    numTries++;
-                    LOG(SMT_LOG_ERROR, @"Tracking event not successful, will retry. Attempt: %d", numTries);
-                    [NSThread sleepForTimeInterval:retryInterval];
-                }
+            // Add (or replace) om_delta. Needs to be calculated separately for each retry, because it's function of time
+            NSNumber *omCreationTime = [event objectForKey:@"om_creation_time"];
+            if (omCreationTime != nil) {
+                NSNumber* omDelta = [NSNumber numberWithLong:([OMTUtils getCurrentTimeSecs] - [omCreationTime doubleValue])];
+                [event setObject:omDelta forKey:@"om_delta"];
+            }
+            else {
+                // Backwards compatibility for old events in the queue that don't have om_creation_time.
+                // Obviously value of om_delta is > 0, but know way to calculate, so just using 0.
+                
+                // Maybe we don't want to mess with the average delta value, so avoiding for now --Pedro
+                //[event setObject:[NSNumber numberWithInt:0] forKey:@"om_delta"];
+            }
+                
+            NSMutableString *url = [NSMutableString stringWithString:[config getURL:SMT_SERVER_TRACK]];
+            [url appendString:@"?"];
+                
+            // Clean parameters that must not be sent from event
+            NSMutableDictionary* eventCopy = [NSMutableDictionary dictionaryWithDictionary:event];
+            [eventCopy removeObjectForKey:@"om_creation_time"];
+                
+            [url appendString:[OMTUtils joinDictionaryByString:eventCopy :@"&"]];
+                
+            responseCode = [OMTUtils getFromURL:url:&response];
+            
+            NSNumber* numTries = [event objectForKey:@"om_retry"];
+            
+            if (numTries == nil) {
+                // First try, start marking retry count
+                numTries = [NSNumber numberWithInt:1];
+            } else {
+                numTries = [NSNumber numberWithInt:[numTries intValue] + 1];
             }
             
-            if (responseCode >= INTERNAL_SERVER_ERROR) {
-                LOG(SMT_LOG_ERROR, @"Max tries reached. Deleting events");
+            if (responseCode >= HTTP_BAD_REQUEST) {
+                [event setObject:numTries forKey:@"om_retry"];
+                [persistentEventQueue save]; // Ensure retry count gets persisted
                 
+                [self notifyEventCallback:event WithStatus:EVENT_FAILED AndNumTries:[numTries intValue]];
+                
+                if ([numTries intValue] < maxTries) {
+                    // Do retry
+                    NSUInteger sleep = SLEEP_TIME * pow(2, [numTries intValue]);
+                    if (sleep > MAX_SLEEP) {
+                        sleep = MAX_SLEEP;
+                    }
+                    
+                    LOG(SMT_LOG_ERROR, @"Tracking event unsuccessful, will retry. Attempt: %d. Sleep %d", numTries, sleep);
+                    [NSThread sleepForTimeInterval:sleep];
+                } else {
+                    // Max retries reached, discard event
+                    LOG(SMT_LOG_ERROR, @"Discarding event");
+                    [self incrementDiscarded];
+                    [self notifyEventCallback:event WithStatus:EVENT_DISCARDED AndNumTries:[numTries intValue]];
+                    [persistentEventQueue remove];
+                    [persistentEventQueue save];
+                }
+            } else {
+                [self notifyEventCallback:event WithStatus:EVENT_SUCCESS AndNumTries:[numTries intValue]];
+                [persistentEventQueue remove];
+                [persistentEventQueue save];
             }
-            lastEventUploadTime = [OMTUtils getCurrentTimeSecs];
-            [persistentEventQueue removeBlock:eventCount];
-            [persistentEventQueue save];
-        }
-        else {
-            offlineDetected = YES;
-            LOG(SMT_LOG_INFO, @"Event Upload skipped: OFFLINE DEVICE");
         }
     }
-    
+}
+
+- (void)setEventCallback:(EventCallbackBlock) _eventCallback {
+    @synchronized(self) {
+        self.eventCallback = _eventCallback;
+    }
+}
+
+- (void)notifyEventCallback:(NSDictionary*)event WithStatus:(OMT_EVENT_STATUS)eventStatus AndNumTries:(NSUInteger)numTries {
+    if (eventCallback != nil) {
+        dispatch_sync(dispatch_get_main_queue(), ^(void) {
+            eventCallback(event, eventStatus, numTries);
+        });
+    }
+}
+
+/**
+ * Increments in the persistent storage the total count of discarded events.
+ */
+- (void)incrementDiscarded {
+    @synchronized(self) {
+        NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+        [userDefaults setInteger:[userDefaults integerForKey:OM_DISCARDED] + 1 forKey:OM_DISCARDED];
+    }
+}
+
+/**
+ * Gets from the persistent storage the total count of discarded events.
+ */
+- (NSInteger)getDiscarded {
+    @synchronized(self) {
+        return [[NSUserDefaults standardUserDefaults] integerForKey:OM_DISCARDED];
+    }
 }
 
 - (BOOL)getConfig {
@@ -124,17 +170,23 @@
     return eventConfigLoaded;
 }
 
-
-
-- (void)persistEvents {
-    NSUInteger eventCount = [mEventQueue getCount];
-    BOOL hasEvents = (eventCount > 0);
-    for (NSInteger i = 0; i < eventCount; i++) {
-        OMTEvent *event = [mEventQueue remove];
-        [persistentEventQueue add:event.data];
-    }
-    if (hasEvents) {
-        [persistentEventQueue save];
+- (void)persistEvents:(id)object {
+    @autoreleasepool {
+        while(![eventPersistThread isCancelled]) {
+            @autoreleasepool {
+                NSUInteger eventCount = [mEventQueue getCount];
+                if (eventCount > 0) {
+                    for (NSInteger i = 0; i < eventCount; i++) {
+                        OMTEvent *event = [mEventQueue remove];
+                        [persistentEventQueue add:event.data];
+                    }
+                    
+                    [persistentEventQueue save];
+                        // TODO: not handling the response value
+                }
+            }
+            [NSThread sleepForTimeInterval:EVENT_PERSIST_THREAD_DELAY];
+        }
     }
 }
 
@@ -156,7 +208,7 @@
     mEventQueue = nil;
     persistentEventQueue = nil;
     eventProcessorThread = nil;
+    eventPersistThread = nil;
 }
-
 
 @end

@@ -62,7 +62,6 @@
 @synthesize maxRetriesForChannelMessages;
 @synthesize reachability;
 
-
 static SMT_LOG logType = SMT_LOG_NONE;
 static NSString *rooturl = nil;
 static NSString *trackUrl = nil;
@@ -100,7 +99,7 @@ static BOOL debug = false;
     }
    trackUrl = [NSString stringWithFormat:@"%@%@", rooturl, EVENTS_TRACK_SUB_URL];
    configUrl = [NSString stringWithFormat:@"%@%@", rooturl, CONFIG_SUB_URL];
-   channelUrl = [NSString stringWithFormat:@"%@%@",rooturl,CHANNEL_MSGS_SUB_URL];
+   channelUrl = [NSString stringWithFormat:@"%@%@",rooturl, CHANNEL_MSGS_SUB_URL];
 }
 
 - (NSString *)getURL:(SMT_SERVERS)serverId {
@@ -118,27 +117,18 @@ static BOOL debug = false;
     return nil;
 }
 
-
 - (BOOL)getEventConfig {
     BOOL updated = NO;
     NSString *string;
     
-    //[OMTUtils getFromURL:[self getURL:SMT_SERVER_CONFIG] :&string];
-    if (false && [string rangeOfString:ERROR].location == NSNotFound) //if string has no value that contains "ERROR";//todo:Jijo: bad error check. change it later to more readable.
-    {
-        LOG(SMT_LOG_INFO, @"configuration received from server");
-    }
-    else{
-        LOG(SMT_LOG_WARN, @"configuration not received from server. Loading defaults");
-        
-        string = @"{ \n"
-        "    \"max_track_retries\":3, \n"
-        "    \"max_channel_retries\":3, \n"
-        "    \"max_batch_size\":1, \n"
-        "    \"max_batch_delay\":20, \n"
-        "    \"retry_delay\":4 \n"
-        "} ";
-    }
+    string = @"{ \n"
+    "    \"max_track_retries\":10, \n"
+    "    \"max_channel_retries\":3, \n"
+    "    \"max_batch_size\":1, \n"
+    "    \"max_batch_delay\":0, \n"
+    "    \"retry_delay\":4 \n"
+    "} ";
+    
     updated = [self initEventConfig:string];
     return updated;
 }
@@ -179,19 +169,13 @@ static BOOL debug = false;
         }
         batchUploadDelay = [val unsignedIntValue];
 
-        val = [dictionary objectForKey:CONFIG_JSON_MIN_RETRY_DELAY];
-        if (!val) {
-            LOG(SMT_LOG_ERROR, @"Value not found for %@ in config", CONFIG_JSON_MIN_RETRY_DELAY);
-            return isSuccess;
-        }
-        retryInterval = [val unsignedIntValue];
         isSuccess = YES;
         LOG(SMT_LOG_INFO, @"Event CONFIG loaded successfully");
-        LOG(SMT_LOG_VERBOSE, @"maxRetriesForEvents:%d",maxRetriesForEvents);
-        LOG(SMT_LOG_VERBOSE, @"maxRetriesForChannel:%d",maxRetriesForChannelMessages);
-        LOG(SMT_LOG_VERBOSE, @"maxBatchSize:%d",maxBatchSize);
-        LOG(SMT_LOG_VERBOSE, @"batchUploadDelay:%d",batchUploadDelay);
-        LOG(SMT_LOG_VERBOSE, @"retryInterval:%d",retryInterval);
+        LOG(SMT_LOG_VERBOSE, @"maxRetriesForEvents:%d", maxRetriesForEvents);
+        LOG(SMT_LOG_VERBOSE, @"maxRetriesForChannel:%d", maxRetriesForChannelMessages);
+        LOG(SMT_LOG_VERBOSE, @"maxBatchSize:%d", maxBatchSize);
+        LOG(SMT_LOG_VERBOSE, @"batchUploadDelay:%d", batchUploadDelay);
+        LOG(SMT_LOG_VERBOSE, @"retryInterval:%d", retryInterval);
     }
     return isSuccess;
 }
