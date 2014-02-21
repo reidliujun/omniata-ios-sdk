@@ -82,9 +82,12 @@ static BOOL debug = false;
     debug = dbg;
     [self setUrls];
    
-    [self setReachability:^{
-        return [OMTUtils defaultReachabilityCheck];
-    }];
+    // reachability may have already been set, if so, don't attempt to assign default reachability
+    if (reachability == nil) {
+        [self setReachability:^{
+            return [OMTUtils defaultReachabilityCheck];
+        }];
+    }
     
     self->userParams = param;
 }
@@ -120,7 +123,16 @@ static BOOL debug = false;
 - (BOOL)getEventConfig {
     BOOL updated = NO;
     NSString *string;
-    
+
+#ifdef DEVELOPMENT
+    string = @"{ \n"
+    "    \"max_track_retries\":3, \n"
+    "    \"max_channel_retries\":3, \n"
+    "    \"max_batch_size\":1, \n"
+    "    \"max_batch_delay\":0, \n"
+    "    \"retry_delay\":4 \n"
+    "} ";
+#else
     string = @"{ \n"
     "    \"max_track_retries\":10, \n"
     "    \"max_channel_retries\":3, \n"
@@ -128,6 +140,7 @@ static BOOL debug = false;
     "    \"max_batch_delay\":0, \n"
     "    \"retry_delay\":4 \n"
     "} ";
+#endif
     
     updated = [self initEventConfig:string];
     return updated;

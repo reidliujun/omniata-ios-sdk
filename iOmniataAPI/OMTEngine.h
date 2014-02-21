@@ -13,8 +13,6 @@
     NSThread *eventPersistThread;
     NSThread *eventProcessorThread;
     BOOL eventConfigLoaded;
-    double lastEventUploadTime;
-    BOOL offlineDetected;
     EventCallbackBlock eventCallback;
 
     OMTConfig * config;

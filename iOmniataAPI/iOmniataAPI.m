@@ -177,7 +177,7 @@ static OMTChannelEngine *channelEngine;
     NSString* omPlatform = @"ios";
     NSString* omOsVersion = [[UIDevice currentDevice] systemVersion];
     NSString* omSdkVersion = [iOmniataAPI getAgentVersion];
-    NSInteger omDiscarded = [trackerEngine getDiscarded];
+    NSNumber* omDiscarded = [NSNumber numberWithInteger:[trackerEngine getDiscarded]];
 
     NSString* locale = [[NSLocale currentLocale] objectForKey:NSLocaleCountryCode];
     NSString* model = [[UIDevice currentDevice] model];
