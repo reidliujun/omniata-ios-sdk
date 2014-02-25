@@ -33,6 +33,7 @@ NSUInteger const SLEEP_TIME = 1;
 NSUInteger const MAX_SLEEP = 64;
 NSString *const ERROR = @"ERROR";
 NSString *const OM_DISCARDED = @"om_discarded";
+NSString* const OM_APNS_DEVICE_TOKEN = @"om_device_token";
 
 
 //SERVER

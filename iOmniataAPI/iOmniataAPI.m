@@ -235,4 +235,39 @@ static OMTChannelEngine *channelEngine;
     return SDK_VERSION;
 }
 
++ (void)enablePushNotifications:(NSData*)deviceToken {
+    NSMutableDictionary* params;
+    NSString* storedToken;
+    
+    @synchronized(self) {
+        [self assertInitialized];
+    
+        storedToken = [[NSUserDefaults standardUserDefaults] stringForKey:@"om_device_token"];
+    
+        if (!storedToken) {
+            params = [[NSMutableDictionary alloc] init];
+            if ([iOmniataAPI trackEvent:@"om_apns_enable" : params]) {
+                // Event successfully added
+                [params setObject:[deviceToken description] forKey:@"om_device_token"];
+            }
+        }
+    }
+}
+
++ (void)disablePushNotifications {
+    NSString* storedToken;
+    
+    @synchronized(self) {
+        [self assertInitialized];
+    
+        storedToken = [[NSUserDefaults standardUserDefaults] stringForKey:@"om_device_token"];
+    
+        if (storedToken) {
+            if ([iOmniataAPI trackEvent:@"om_apns_disable" : nil]) {
+                [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"om_device_token"];
+            }
+        }
+    }
+}
+
 @end

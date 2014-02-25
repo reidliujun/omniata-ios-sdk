@@ -192,4 +192,19 @@ typedef void (^EventCallbackBlock)(NSDictionary* event, OMT_EVENT_STATUS status,
  */
 + (void)setReachability:(BOOL(^)(void))reachability;
 
+/** Enable Remote Push Notifications
+ 
+ Use this method to register the user's push notification token. If enabled, the user will be eligible to receive targeted push notification messages.
+ @param deviceToken NSData containing deviceToken passed on didRegisterForRemoteNotificationsWithDeviceToken
+ @throws NSException if SDK has not been initialized
+ */
++ (void)enablePushNotifications:(NSData*)deviceToken;
+
+/** Disable push notifications
+ 
+ Use this method to disable push notifications. Calling this method will instruct Omniata to prevent sending notifications to this user.
+ @return BOOL YES if push notifications are switched from enabled to disabled.
+ */
++ (void)disablePushNotifications;
+
 @end
