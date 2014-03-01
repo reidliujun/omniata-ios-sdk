@@ -243,12 +243,13 @@ static OMTChannelEngine *channelEngine;
         [self assertInitialized];
     
         storedToken = [[NSUserDefaults standardUserDefaults] stringForKey:@"om_device_token"];
-    
-        if (!storedToken) {
+            
+        if (!storedToken || ![storedToken isEqualToString:[deviceToken description]]) {
             params = [[NSMutableDictionary alloc] init];
+            [params setObject:[deviceToken description] forKey:@"om_device_token"];
             if ([iOmniataAPI trackEvent:@"om_apns_enable" : params]) {
                 // Event successfully added
-                [params setObject:[deviceToken description] forKey:@"om_device_token"];
+                [[NSUserDefaults standardUserDefaults] setObject:[deviceToken description] forKey:@"om_device_token"];
             }
         }
     }
