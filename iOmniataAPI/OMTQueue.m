@@ -21,8 +21,14 @@
 
 - (void)add:(id)object {
     [queLock lock];
-
     [queue insertObject:object atIndex:[queue count]];
+    [queLock unlock];
+}
+
+- (void)addAndSave:(id)object {
+    [queLock lock];
+    [queue insertObject:object atIndex:[queue count]];
+    [self save];
     [queLock unlock];
 }
 
@@ -118,7 +124,11 @@
 }
 
 - (BOOL)save {
-    return [self writeToFile];
+    BOOL res;
+    [queLock lock];
+    res = [self writeToFile];
+    [queLock unlock];
+    return res;
 }
 
 - (void) encodeWithCoder:(NSCoder *)coder {

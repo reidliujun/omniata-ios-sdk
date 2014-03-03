@@ -178,10 +178,10 @@
                 if (eventCount > 0) {
                     for (NSInteger i = 0; i < eventCount; i++) {
                         OMTEvent *event = [mEventQueue remove];
-                        [persistentEventQueue add:event.data];
+                        [persistentEventQueue addAndSave:event.data];
                     }
                     
-                    [persistentEventQueue save];
+                    //[persistentEventQueue save];
                         // TODO: not handling the response value
                 }
             }

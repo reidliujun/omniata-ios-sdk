@@ -10,6 +10,8 @@
 
 - (void)add :(id)object;
 
+- (void)addAndSave :(id)object;
+
 - (id)initWithArray:(NSArray *)array;
 
 - (id)remove;

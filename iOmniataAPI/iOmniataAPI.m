@@ -237,37 +237,19 @@ static OMTChannelEngine *channelEngine;
 
 + (void)enablePushNotifications:(NSData*)deviceToken {
     NSMutableDictionary* params;
-    NSString* storedToken;
     
     @synchronized(self) {
         [self assertInitialized];
-    
-        storedToken = [[NSUserDefaults standardUserDefaults] stringForKey:@"om_device_token"];
-            
-        if (!storedToken || ![storedToken isEqualToString:[deviceToken description]]) {
-            params = [[NSMutableDictionary alloc] init];
-            [params setObject:[deviceToken description] forKey:@"om_device_token"];
-            if ([iOmniataAPI trackEvent:@"om_apns_enable" : params]) {
-                // Event successfully added
-                [[NSUserDefaults standardUserDefaults] setObject:[deviceToken description] forKey:@"om_device_token"];
-            }
-        }
+        params = [[NSMutableDictionary alloc] init];
+        [params setObject:[deviceToken description] forKey:@"om_device_token"];
+        [iOmniataAPI trackEvent:@"om_apns_enable" : params];
     }
 }
 
 + (void)disablePushNotifications {
-    NSString* storedToken;
-    
     @synchronized(self) {
         [self assertInitialized];
-    
-        storedToken = [[NSUserDefaults standardUserDefaults] stringForKey:@"om_device_token"];
-    
-        if (storedToken) {
-            if ([iOmniataAPI trackEvent:@"om_apns_disable" : nil]) {
-                [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"om_device_token"];
-            }
-        }
+        [iOmniataAPI trackEvent:@"om_apns_disable" : nil];
     }
 }
 
