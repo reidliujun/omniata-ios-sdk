@@ -27,16 +27,16 @@
  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import "SBJsonWriter.h"
-#import "SBJsonStreamWriter.h"
-#import "SBJsonStreamWriterAccumulator.h"
+#import "OmSBJsonWriter.h"
+#import "OmSBJsonStreamWriter.h"
+#import "OmSBJsonStreamWriterAccumulator.h"
 
 
-@interface SBJsonWriter ()
+@interface OmSBJsonWriter ()
 @property (copy) NSString *error;
 @end
 
-@implementation SBJsonWriter
+@implementation OmSBJsonWriter
 
 @synthesize sortKeys;
 @synthesize humanReadable;
@@ -69,7 +69,7 @@
     
     if (error_) {
 		NSDictionary *ui = [NSDictionary dictionaryWithObjectsAndKeys:error, NSLocalizedDescriptionKey, nil];
-        *error_ = [NSError errorWithDomain:@"org.brautaset.SBJsonWriter.ErrorDomain" code:0 userInfo:ui];
+        *error_ = [NSError errorWithDomain:@"org.brautaset.OmSBJsonWriter.ErrorDomain" code:0 userInfo:ui];
 	}
 	
     return nil;
@@ -78,9 +78,9 @@
 - (NSData*)dataWithObject:(id)object {	
     self.error = nil;
 
-    SBJsonStreamWriterAccumulator *accumulator = [[SBJsonStreamWriterAccumulator alloc] init];
+    OmSBJsonStreamWriterAccumulator *accumulator = [[OmSBJsonStreamWriterAccumulator alloc] init];
     
-	SBJsonStreamWriter *streamWriter = [[SBJsonStreamWriter alloc] init];
+	OmSBJsonStreamWriter *streamWriter = [[OmSBJsonStreamWriter alloc] init];
 	streamWriter.sortKeys = self.sortKeys;
 	streamWriter.maxDepth = self.maxDepth;
 	streamWriter.sortKeysComparator = self.sortKeysComparator;

@@ -26,6 +26,13 @@
     [queLock unlock];
 }
 
+- (void)addAndSave:(id)object {
+    [queLock lock];
+    [queue insertObject:object atIndex:[queue count]];
+    [self save];
+    [queLock unlock];
+}
+
 - (id)initWithArray:(NSArray *)array {
     if (self = [super init])
     {
@@ -118,7 +125,11 @@
 }
 
 - (BOOL)save {
-    return [self writeToFile];
+    BOOL result;
+    [queLock lock];
+    result = [self writeToFile];
+    [queLock unlock];
+    return result;
 }
 
 - (void) encodeWithCoder:(NSCoder *)coder {

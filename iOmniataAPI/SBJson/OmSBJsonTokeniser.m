@@ -29,8 +29,8 @@
  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import "SBJsonTokeniser.h"
-#import "SBJsonUTF8Stream.h"
+#import "OmSBJsonTokeniser.h"
+#import "OmSBJsonUTF8Stream.h"
 
 #define SBStringIsIllegalSurrogateHighCharacter(character) (((character) >= 0xD800UL) && ((character) <= 0xDFFFUL))
 #define SBStringIsSurrogateLowCharacter(character) ((character >= 0xDC00UL) && (character <= 0xDFFFUL))
@@ -43,7 +43,7 @@ static int const LONG_LONG_DIGITS = 19;
 
 static NSCharacterSet *kDecimalDigitCharacterSet;
 
-@implementation SBJsonTokeniser
+@implementation OmSBJsonTokeniser
 
 @synthesize error = _error;
 @synthesize stream = _stream;
@@ -55,7 +55,7 @@ static NSCharacterSet *kDecimalDigitCharacterSet;
 - (id)init {
     self = [super init];
     if (self) {
-        _stream = [[SBJsonUTF8Stream alloc] init];
+        _stream = [[OmSBJsonUTF8Stream alloc] init];
 
     }
 
