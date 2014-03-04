@@ -27,10 +27,10 @@
  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import "SBJsonStreamWriterAccumulator.h"
+#import "OmSBJsonStreamWriterAccumulator.h"
 
 
-@implementation SBJsonStreamWriterAccumulator
+@implementation OmSBJsonStreamWriterAccumulator
 
 @synthesize data;
 
@@ -43,9 +43,9 @@
 }
 
 
-#pragma mark SBJsonStreamWriterDelegate
+#pragma mark OmSBJsonStreamWriterDelegate
 
-- (void)writer:(SBJsonStreamWriter *)writer appendBytes:(const void *)bytes length:(NSUInteger)length {
+- (void)writer:(OmSBJsonStreamWriter *)writer appendBytes:(const void *)bytes length:(NSUInteger)length {
     [data appendBytes:bytes length:length];
 }
 

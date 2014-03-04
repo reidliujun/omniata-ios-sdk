@@ -4,7 +4,7 @@
 #import "OMTUtils.h"
 #import "OMTEvent.h"
 #import "OMTConfig.h"
-#import "SBJson.h"
+#import "OmSBJson.h"
 
 @implementation OMTEngine {
     
@@ -178,11 +178,8 @@
                 if (eventCount > 0) {
                     for (NSInteger i = 0; i < eventCount; i++) {
                         OMTEvent *event = [mEventQueue remove];
-                        [persistentEventQueue add:event.data];
+                        [persistentEventQueue addAndSave:event.data];
                     }
-                    
-                    [persistentEventQueue save];
-                        // TODO: not handling the response value
                 }
             }
             [NSThread sleepForTimeInterval:EVENT_PERSIST_THREAD_DELAY];

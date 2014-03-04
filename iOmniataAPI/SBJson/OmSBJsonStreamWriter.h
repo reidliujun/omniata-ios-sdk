@@ -33,7 +33,7 @@
 #import <Foundation/Foundation.h>
 
 /// Enable JSON writing for non-native objects
-@interface NSObject (SBProxyForJson)
+@interface NSObject (OmSBProxyForJson)
 
 /**
  @brief Allows generation of JSON for otherwise unsupported classes.
@@ -58,15 +58,15 @@
 
 @end
 
-@class SBJsonStreamWriter;
+@class OmSBJsonStreamWriter;
 
-@protocol SBJsonStreamWriterDelegate
+@protocol OmSBJsonStreamWriterDelegate
 
-- (void)writer:(SBJsonStreamWriter*)writer appendBytes:(const void *)bytes length:(NSUInteger)length;
+- (void)writer:(OmSBJsonStreamWriter*)writer appendBytes:(const void *)bytes length:(NSUInteger)length;
 
 @end
 
-@class SBJsonStreamWriterState;
+@class OmSBJsonStreamWriterState;
 
 /**
  @brief The Stream Writer class.
@@ -82,18 +82,18 @@
 
  */
 
-@interface SBJsonStreamWriter : NSObject {
+@interface OmSBJsonStreamWriter : NSObject {
     NSMutableDictionary *cache;
 }
 
-@property (nonatomic, unsafe_unretained) SBJsonStreamWriterState *state; // Internal
+@property (nonatomic, unsafe_unretained) OmSBJsonStreamWriterState *state; // Internal
 @property (nonatomic, readonly, strong) NSMutableArray *stateStack; // Internal 
 
 /**
  @brief delegate to receive JSON output
  Delegate that will receive messages with output.
  */
-@property (unsafe_unretained) id<SBJsonStreamWriterDelegate> delegate;
+@property (unsafe_unretained) id<OmSBJsonStreamWriterDelegate> delegate;
 
 /**
  @brief The maximum recursing depth.
@@ -188,7 +188,7 @@
 
 @end
 
-@interface SBJsonStreamWriter (Private)
+@interface OmSBJsonStreamWriter (Private)
 - (BOOL)writeValue:(id)v;
 - (void)appendBytes:(const void *)bytes length:(NSUInteger)length;
 @end

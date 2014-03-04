@@ -32,52 +32,38 @@
 
 #import <Foundation/Foundation.h>
 
-#import "SBJsonTokeniser.h"
-#import "SBJsonStreamParser.h"
+@class OmSBJsonStreamWriter;
 
-@interface SBJsonStreamParserState : NSObject
+@interface OmSBJsonStreamWriterState : NSObject
 + (id)sharedInstance;
-
-- (BOOL)parser:(SBJsonStreamParser*)parser shouldAcceptToken:(sbjson_token_t)token;
-- (SBJsonStreamParserStatus)parserShouldReturn:(SBJsonStreamParser*)parser;
-- (void)parser:(SBJsonStreamParser*)parser shouldTransitionTo:(sbjson_token_t)tok;
-- (BOOL)needKey;
-- (BOOL)isError;
-
-- (NSString*)name;
-
+- (BOOL)isInvalidState:(OmSBJsonStreamWriter*)writer;
+- (void)appendSeparator:(OmSBJsonStreamWriter*)writer;
+- (BOOL)expectingKey:(OmSBJsonStreamWriter*)writer;
+- (void)transitionState:(OmSBJsonStreamWriter*)writer;
+- (void)appendWhitespace:(OmSBJsonStreamWriter*)writer;
 @end
 
-@interface SBJsonStreamParserStateStart : SBJsonStreamParserState
+@interface OmSBJsonStreamWriterStateObjectStart : OmSBJsonStreamWriterState
 @end
 
-@interface SBJsonStreamParserStateComplete : SBJsonStreamParserState
+@interface OmSBJsonStreamWriterStateObjectKey : OmSBJsonStreamWriterStateObjectStart
 @end
 
-@interface SBJsonStreamParserStateError : SBJsonStreamParserState
+@interface OmSBJsonStreamWriterStateObjectValue : OmSBJsonStreamWriterState
 @end
 
-
-@interface SBJsonStreamParserStateObjectStart : SBJsonStreamParserState
+@interface OmSBJsonStreamWriterStateArrayStart : OmSBJsonStreamWriterState
 @end
 
-@interface SBJsonStreamParserStateObjectGotKey : SBJsonStreamParserState
+@interface OmSBJsonStreamWriterStateArrayValue : OmSBJsonStreamWriterState
 @end
 
-@interface SBJsonStreamParserStateObjectSeparator : SBJsonStreamParserState
+@interface OmSBJsonStreamWriterStateStart : OmSBJsonStreamWriterState
 @end
 
-@interface SBJsonStreamParserStateObjectGotValue : SBJsonStreamParserState
+@interface OmSBJsonStreamWriterStateComplete : OmSBJsonStreamWriterState
 @end
 
-@interface SBJsonStreamParserStateObjectNeedKey : SBJsonStreamParserState
+@interface OmSBJsonStreamWriterStateError : OmSBJsonStreamWriterState
 @end
 
-@interface SBJsonStreamParserStateArrayStart : SBJsonStreamParserState
-@end
-
-@interface SBJsonStreamParserStateArrayGotValue : SBJsonStreamParserState
-@end
-
-@interface SBJsonStreamParserStateArrayNeedValue : SBJsonStreamParserState
-@end

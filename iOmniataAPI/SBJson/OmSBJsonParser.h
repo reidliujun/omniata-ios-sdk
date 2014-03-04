@@ -38,7 +38,7 @@
 
  */
 
-@interface SBJsonParser : NSObject
+@interface OmSBJsonParser : NSObject
 
 /**
  @brief The maximum recursing depth.

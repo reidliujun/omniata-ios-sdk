@@ -1,6 +1,6 @@
 #import "OMTConfig.h"
 #import "OMTUtils.h"
-#import "SBJson.h"
+#import "OmSBJson.h"
 #import "Reachability.h"
 
 ///////////////////////////SINGLETON/////////////////////
@@ -149,7 +149,7 @@ static BOOL debug = false;
 
 - (BOOL)initEventConfig:(NSString *)string {
     BOOL isSuccess = NO;
-    NSDictionary *dictionary = [string JSONValue];
+    NSDictionary *dictionary = [string OmJSONValue];
     if (!dictionary) {
         LOG(SMT_LOG_ERROR, @"Invalid JSON data for Event Config");
     }

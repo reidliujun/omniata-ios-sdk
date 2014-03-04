@@ -32,15 +32,15 @@
 
 #import <Foundation/Foundation.h>
 
-@class SBJsonTokeniser;
-@class SBJsonStreamParser;
-@class SBJsonStreamParserState;
+@class OmSBJsonTokeniser;
+@class OmSBJsonStreamParser;
+@class OmSBJsonStreamParserState;
 
 typedef enum {
-	SBJsonStreamParserComplete,
-	SBJsonStreamParserWaitingForData,
-	SBJsonStreamParserError,
-} SBJsonStreamParserStatus;
+	OmSBJsonStreamParserComplete,
+	OmSBJsonStreamParserWaitingForData,
+	OmSBJsonStreamParserError,
+} OmSBJsonStreamParserStatus;
 
 
 /**
@@ -49,34 +49,34 @@ typedef enum {
  You will most likely find it much more convenient to implement the
  SBJsonStreamParserAdapterDelegate protocol instead.
  */
-@protocol SBJsonStreamParserDelegate
+@protocol OmSBJsonStreamParserDelegate
 
 /// Called when object start is found
-- (void)parserFoundObjectStart:(SBJsonStreamParser*)parser;
+- (void)parserFoundObjectStart:(OmSBJsonStreamParser*)parser;
 
 /// Called when object key is found
-- (void)parser:(SBJsonStreamParser*)parser foundObjectKey:(NSString*)key;
+- (void)parser:(OmSBJsonStreamParser*)parser foundObjectKey:(NSString*)key;
 
 /// Called when object end is found
-- (void)parserFoundObjectEnd:(SBJsonStreamParser*)parser;
+- (void)parserFoundObjectEnd:(OmSBJsonStreamParser*)parser;
 
 /// Called when array start is found
-- (void)parserFoundArrayStart:(SBJsonStreamParser*)parser;
+- (void)parserFoundArrayStart:(OmSBJsonStreamParser*)parser;
 
 /// Called when array end is found
-- (void)parserFoundArrayEnd:(SBJsonStreamParser*)parser;
+- (void)parserFoundArrayEnd:(OmSBJsonStreamParser*)parser;
 
 /// Called when a boolean value is found
-- (void)parser:(SBJsonStreamParser*)parser foundBoolean:(BOOL)x;
+- (void)parser:(OmSBJsonStreamParser*)parser foundBoolean:(BOOL)x;
 
 /// Called when a null value is found
-- (void)parserFoundNull:(SBJsonStreamParser*)parser;
+- (void)parserFoundNull:(OmSBJsonStreamParser*)parser;
 
 /// Called when a number is found
-- (void)parser:(SBJsonStreamParser*)parser foundNumber:(NSNumber*)num;
+- (void)parser:(OmSBJsonStreamParser*)parser foundNumber:(NSNumber*)num;
 
 /// Called when a string is found
-- (void)parser:(SBJsonStreamParser*)parser foundString:(NSString*)string;
+- (void)parser:(OmSBJsonStreamParser*)parser foundString:(NSString*)string;
 
 @end
 
@@ -97,12 +97,12 @@ typedef enum {
  @see @ref objc2json
  
  */
-@interface SBJsonStreamParser : NSObject {
+@interface OmSBJsonStreamParser : NSObject {
 @private
-	SBJsonTokeniser *tokeniser;
+	OmSBJsonTokeniser *tokeniser;
 }
 
-@property (nonatomic, unsafe_unretained) SBJsonStreamParserState *state; // Private
+@property (nonatomic, unsafe_unretained) OmSBJsonStreamParserState *state; // Private
 @property (nonatomic, readonly, strong) NSMutableArray *stateStack; // Private
 
 /**
@@ -129,7 +129,7 @@ typedef enum {
  Usually this should be an instance of SBJsonStreamParserAdapter, but you can
  substitute your own implementation of the SBJsonStreamParserDelegate protocol if you need to. 
  */
-@property (unsafe_unretained) id<SBJsonStreamParserDelegate> delegate;
+@property (unsafe_unretained) id<OmSBJsonStreamParserDelegate> delegate;
 
 /**
  @brief The max parse depth
@@ -156,6 +156,6 @@ typedef enum {
  @li SBJsonStreamParserError if an error occured. (See the error property for details in this case.)
  
  */
-- (SBJsonStreamParserStatus)parse:(NSData*)data;
+- (OmSBJsonStreamParserStatus)parse:(NSData*)data;
 
 @end

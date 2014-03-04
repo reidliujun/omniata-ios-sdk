@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2011 Stig Brautaset. All rights reserved.
+ Copyright (C) 2009 Stig Brautaset. All rights reserved.
  
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
@@ -27,10 +27,46 @@
  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import "SBJsonStreamWriter.h"
+#import "OmNSObject+SBJson.h"
+#import "OmSBJsonWriter.h"
+#import "OmSBJsonParser.h"
 
-@interface SBJsonStreamWriterAccumulator : NSObject <SBJsonStreamWriterDelegate>
+@implementation NSObject (NSObject_OmSBJsonWriting)
 
-@property (readonly, copy) NSMutableData* data;
+- (NSString *)OmJSONRepresentation {
+    OmSBJsonWriter *writer = [[OmSBJsonWriter alloc] init];
+    NSString *json = [writer stringWithObject:self];
+    if (!json)
+        NSLog(@"-JSONRepresentation failed. Error is: %@", writer.error);
+    return json;
+}
+
+@end
+
+
+
+@implementation NSString (NSString_OmSBJsonParsing)
+
+- (id)OmJSONValue {
+    OmSBJsonParser *parser = [[OmSBJsonParser alloc] init];
+    id repr = [parser objectWithString:self];
+    if (!repr)
+        NSLog(@"-JSONValue failed. Error is: %@", parser.error);
+    return repr;
+}
+
+@end
+
+
+
+@implementation NSData (NSData_OmSBJsonParsing)
+
+- (id)OmJSONValue {
+    OmSBJsonParser *parser = [[OmSBJsonParser alloc] init];
+    id repr = [parser objectWithData:self];
+    if (!repr)
+        NSLog(@"-JSONValue failed. Error is: %@", parser.error);
+    return repr;
+}
 
 @end

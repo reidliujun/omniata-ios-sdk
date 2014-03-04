@@ -39,20 +39,28 @@
     *responseStr = @"ERROR::Could Not Establish Connection";
     @try {
         NSURL *url = [NSURL URLWithString:urlStr];
-        NSMutableURLRequest *urlRequest = [NSMutableURLRequest requestWithURL:url];
+        NSMutableURLRequest *urlRequest = [NSMutableURLRequest requestWithURL:url
+                                                        cachePolicy:NSURLRequestReloadIgnoringCacheData
+                                                    timeoutInterval:60.0];
 
         NSURLResponse *response;
         NSError *error;
         NSData *conData;
         if (str != nil) {
+            LOG(SMT_LOG_INFO, @"Posting...");
             NSData *postData = [str dataUsingEncoding:NSUTF8StringEncoding];
             [urlRequest setHTTPMethod:@"POST"];
             [urlRequest setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-type"];
             [urlRequest setValue:[NSString stringWithFormat:@"%d", [postData length]] forHTTPHeaderField:@"Content-length"];
             [urlRequest setHTTPBody:postData];
         }
+        
+        LOG(SMT_LOG_INFO, @"URL: %@", urlRequest);
 
         conData = [NSURLConnection sendSynchronousRequest:urlRequest returningResponse:&response error:&error];
+        if (error != nil) {
+            LOG(SMT_LOG_INFO, @"ERROR?: %@", error);
+        }
         if (conData == nil) {
             LOG(SMT_LOG_ERROR, @"ERROR:Connection FAILED!!!");
         }
@@ -61,6 +69,7 @@
                 responseCode = [(NSHTTPURLResponse *) response statusCode];
                 LOG(SMT_LOG_INFO, @"Response Code %d", responseCode);
                 if (responseCode == HTTP_OK) {
+                    /*
                     *responseStr = [[NSString alloc] initWithData:conData encoding:NSUTF8StringEncoding];
                     if (*responseStr != nil && [*responseStr length] > 0) {
                         LOG(SMT_LOG_VERBOSE, @"HTTP response is %@", *responseStr);
@@ -78,6 +87,7 @@
                         }
                         
                     }
+                     */
                 }
                 else {
                     LOG(SMT_LOG_ERROR, @"ERROR:URL Returned error");
