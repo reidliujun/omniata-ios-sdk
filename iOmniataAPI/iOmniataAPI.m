@@ -182,6 +182,10 @@ static OMTChannelEngine *channelEngine;
     NSString* locale = [[NSLocale currentLocale] objectForKey:NSLocaleCountryCode];
     NSString* model = [[UIDevice currentDevice] model];
     NSString* systemName = [[UIDevice currentDevice] systemName];
+    
+    NSString *bundleShortVersionString = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
+    NSString *bundleVersionKey = [[[NSBundle mainBundle] infoDictionary] objectForKey:(NSString *)kCFBundleVersionKey];
+    NSString *bundleIdentifierKey = [[[NSBundle mainBundle] infoDictionary] objectForKey:(NSString *)kCFBundleIdentifierKey];
 
     return [NSDictionary dictionaryWithObjectsAndKeys:
             // Standard automatic parameters
@@ -190,7 +194,12 @@ static OMTChannelEngine *channelEngine;
             omOsVersion, @"om_os_version",
             omSdkVersion, @"om_sdk_version",
             omDiscarded, OM_DISCARDED,
-            // Backwards compatibility / ios-specific
+            // ios-specific standard parameters
+            bundleShortVersionString, @"om_ios_bundle_short_version_string",
+            bundleVersionKey, @"om_ios_bundle_version",
+            bundleIdentifierKey, @"om_ios_bundle_identifier",
+
+            // Backwards compatibility for older version of the SDK
             omDevice, @"om_ios_hardware",
             locale, @"om_locale",
             model, @"om_ios_model",
