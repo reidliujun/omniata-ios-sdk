@@ -1,7 +1,7 @@
 #import "OMTConstants.h"
 
 //GENERAL
-NSString *const SDK_VERSION = @"ios-1.0.2";
+NSString *const SDK_VERSION = @"ios-1.1.0";
 NSString *const iOMNIATA = @"iOmniataAPI";
 
 NSString *const EVENT_POST_KEY_TYPE = @"type";
