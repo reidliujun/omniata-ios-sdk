@@ -27,12 +27,12 @@
  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import "SBJsonParser.h"
-#import "SBJsonStreamParser.h"
-#import "SBJsonStreamParserAdapter.h"
-#import "SBJsonStreamParserAccumulator.h"
+#import "OmSBJsonParser.h"
+#import "OmSBJsonStreamParser.h"
+#import "OmSBJsonStreamParserAdapter.h"
+#import "OmSBJsonStreamParserAccumulator.h"
 
-@implementation SBJsonParser
+@implementation OmSBJsonParser
 
 @synthesize maxDepth;
 @synthesize error;
@@ -54,25 +54,25 @@
         return nil;
     }
 
-	SBJsonStreamParserAccumulator *accumulator = [[SBJsonStreamParserAccumulator alloc] init];
+	OmSBJsonStreamParserAccumulator *accumulator = [[OmSBJsonStreamParserAccumulator alloc] init];
     
-    SBJsonStreamParserAdapter *adapter = [[SBJsonStreamParserAdapter alloc] init];
+    OmSBJsonStreamParserAdapter *adapter = [[OmSBJsonStreamParserAdapter alloc] init];
     adapter.delegate = accumulator;
 	
-	SBJsonStreamParser *parser = [[SBJsonStreamParser alloc] init];
+	OmSBJsonStreamParser *parser = [[OmSBJsonStreamParser alloc] init];
 	parser.maxDepth = self.maxDepth;
 	parser.delegate = adapter;
 	
 	switch ([parser parse:data]) {
-		case SBJsonStreamParserComplete:
+		case OmSBJsonStreamParserComplete:
             return accumulator.value;
 			break;
 			
-		case SBJsonStreamParserWaitingForData:
+		case OmSBJsonStreamParserWaitingForData:
 		    self.error = @"Unexpected end of input";
 			break;
 
-		case SBJsonStreamParserError:
+		case OmSBJsonStreamParserError:
 		    self.error = parser.error;
 			break;
 	}

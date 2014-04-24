@@ -124,11 +124,11 @@
 }
 
 - (BOOL)save {
-    BOOL res;
+    BOOL result;
     [queLock lock];
-    res = [self writeToFile];
+    result = [self writeToFile];
     [queLock unlock];
-    return res;
+    return result;
 }
 
 - (void) encodeWithCoder:(NSCoder *)coder {

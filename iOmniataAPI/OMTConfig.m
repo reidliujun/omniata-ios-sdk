@@ -1,6 +1,6 @@
 #import "OMTConfig.h"
 #import "OMTUtils.h"
-#import "SBJson.h"
+#import "OmSBJson.h"
 #import "Reachability.h"
 
 ///////////////////////////SINGLETON/////////////////////
@@ -126,7 +126,7 @@ static BOOL debug = false;
 
 #ifdef DEVELOPMENT
     string = @"{ \n"
-    "    \"max_track_retries\":3, \n"
+    "    \"max_track_retries\":50, \n"
     "    \"max_channel_retries\":3, \n"
     "    \"max_batch_size\":1, \n"
     "    \"max_batch_delay\":0, \n"
@@ -134,7 +134,7 @@ static BOOL debug = false;
     "} ";
 #else
     string = @"{ \n"
-    "    \"max_track_retries\":10, \n"
+    "    \"max_track_retries\":50, \n"
     "    \"max_channel_retries\":3, \n"
     "    \"max_batch_size\":1, \n"
     "    \"max_batch_delay\":0, \n"
@@ -149,7 +149,7 @@ static BOOL debug = false;
 
 - (BOOL)initEventConfig:(NSString *)string {
     BOOL isSuccess = NO;
-    NSDictionary *dictionary = [string JSONValue];
+    NSDictionary *dictionary = [string OmJSONValue];
     if (!dictionary) {
         LOG(SMT_LOG_ERROR, @"Invalid JSON data for Event Config");
     }
