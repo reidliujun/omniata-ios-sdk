@@ -244,4 +244,22 @@ static OMTChannelEngine *channelEngine;
     return SDK_VERSION;
 }
 
++ (void)enablePushNotifications:(NSData*)deviceToken {
+    NSMutableDictionary* params;
+    
+    @synchronized(self) {
+        [self assertInitialized];
+        params = [[NSMutableDictionary alloc] init];
+        [params setObject:[deviceToken description] forKey:@"om_device_token"];
+        [iOmniataAPI trackEvent:@"om_apns_enable" : params];
+    }
+}
+
++ (void)disablePushNotifications {
+    @synchronized(self) {
+        [self assertInitialized];
+        [iOmniataAPI trackEvent:@"om_apns_disable" : nil];
+    }
+}
+
 @end

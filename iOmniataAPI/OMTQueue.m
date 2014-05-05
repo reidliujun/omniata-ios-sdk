@@ -21,7 +21,6 @@
 
 - (void)add:(id)object {
     [queLock lock];
-
     [queue insertObject:object atIndex:[queue count]];
     [queLock unlock];
 }
