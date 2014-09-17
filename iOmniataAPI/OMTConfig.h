@@ -24,6 +24,7 @@
 -(void) setLogType:(SMT_LOG) logVal;
 -(SMT_LOG) getLogType;
 
+- (void)initialize:(NSMutableDictionary *)param :(BOOL)debug: (BOOL)uniURL:(NSString *)org;
 - (void)initialize:(NSMutableDictionary *)param :(BOOL)debug;
 -(NSString *)getURL:(SMT_SERVERS)serverId;
 - (void)setReachability:(BOOL (^)(void))reachability;

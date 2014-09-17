@@ -67,8 +67,9 @@ static NSString *rooturl = nil;
 static NSString *trackUrl = nil;
 static NSString *configUrl = nil;
 static NSString *channelUrl = nil;
+static NSString *org = nil;
 static BOOL debug = false;
-
+static BOOL uniURL = true;
 
 - (void)setLogType:(SMT_LOG)logVal {
     logType = logVal;
@@ -81,6 +82,24 @@ static BOOL debug = false;
 - (void)initialize:(NSMutableDictionary *)param :(BOOL)dbg{
     debug = dbg;
     [self setUrls];
+    
+    // reachability may have already been set, if so, don't attempt to assign default reachability
+    if (reachability == nil) {
+        [self setReachability:^{
+            return [OMTUtils defaultReachabilityCheck];
+        }];
+    }
+    
+    self->userParams = param;
+}
+
+// Initilization for multiple URL of different services
+- (void)initialize:(NSMutableDictionary *)param :(BOOL)dbg:(BOOL)uurl:(NSString *)orgname{
+    debug = dbg;
+    uniURL = uurl;
+    org = orgname;
+    
+    [self setUrls];
    
     // reachability may have already been set, if so, don't attempt to assign default reachability
     if (reachability == nil) {
@@ -92,17 +111,41 @@ static BOOL debug = false;
     self->userParams = param;
 }
 
-- (void)setUrls {    
-    if (debug) {
-        LOG(SMT_LOG_INFO, @"DEBUG TRUE");
-        rooturl = TEST_URL;
-    } else {
-        LOG(SMT_LOG_INFO, @"DEBUG FALSE");
+- (void)setUrls {
+    //set the URL for different condition, debug mode will always goes to TEST_URL, if uniURL is true will goes
+    //to api.omniata.com, otherwise url will generate seperate url as follows
+    
+    
+    if (uniURL) {
+        if (debug) {
+            rooturl = TEST_URL;
+            LOG(SMT_LOG_INFO, @"DEBUG TRUE");
+            LOG(SMT_LOG_INFO, @"UNIFIED URL");
+        }else{
+            rooturl = ROOT_URL;
+            LOG(SMT_LOG_INFO, @"DEBUG FALSE");
+            LOG(SMT_LOG_INFO, @"UNIFIED URL");
+        }
+        trackUrl = [NSString stringWithFormat:@"%@%@", rooturl, EVENTS_TRACK_SUB_URL];
+        configUrl = [NSString stringWithFormat:@"%@%@", rooturl, CONFIG_SUB_URL];
+        channelUrl = [NSString stringWithFormat:@"%@%@",rooturl, CHANNEL_MSGS_SUB_URL];
+    } else{
+        if (debug) {
+            LOG(SMT_LOG_INFO, @"DEBUG TRUE");
+            LOG(SMT_LOG_INFO, @"CUSTOMIZED URL");
+            //https does not work now, will support soon.
+            trackUrl = [NSString stringWithFormat:@"https://%@.%@.%@%@", org, @"analyzer-test",BASE_URL,EVENTS_TRACK_SUB_URL];
+            
+        }else{
+            LOG(SMT_LOG_INFO, @"DEBUG FALSE");
+            LOG(SMT_LOG_INFO, @"CUSTOMIZED URL");
+            //https does not work now, will support soon.
+            trackUrl = [NSString stringWithFormat:@"https://%@.%@.%@%@", org, @"analyzer",BASE_URL,EVENTS_TRACK_SUB_URL];
+        }
         rooturl = ROOT_URL;
+        configUrl = [NSString stringWithFormat:@"%@%@", rooturl, CONFIG_SUB_URL];
+        channelUrl = [NSString stringWithFormat:@"https://%@.%@.%@%@", org, @"engager",BASE_URL,CHANNEL_MSGS_SUB_URL];
     }
-   trackUrl = [NSString stringWithFormat:@"%@%@", rooturl, EVENTS_TRACK_SUB_URL];
-   configUrl = [NSString stringWithFormat:@"%@%@", rooturl, CONFIG_SUB_URL];
-   channelUrl = [NSString stringWithFormat:@"%@%@",rooturl, CHANNEL_MSGS_SUB_URL];
 }
 
 - (NSString *)getURL:(SMT_SERVERS)serverId {

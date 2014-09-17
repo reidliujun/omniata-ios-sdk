@@ -38,8 +38,9 @@ NSString* const OM_APNS_DEVICE_TOKEN = @"om_device_token";
 
 //SERVER
 NSString *const ROOT_URL = @"https://api.omniata.com/";
+NSString *const BASE_URL = @"omniata.com/";
 #ifdef DEVELOPMENT
-NSString *const TEST_URL = @"http://localhost:8000/";
+NSString *TEST_URL = @"http://localhost:8000/";
 #else
 NSString *const TEST_URL = @"http://api-test.omniata.com/";
 #endif

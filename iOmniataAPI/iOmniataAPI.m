@@ -54,6 +54,43 @@ static OMTChannelEngine *channelEngine;
     }
 }
 
++ (void)initializeWithApiKey:(NSString *)api_key UserId:(NSString *)user_id OrgInfo:(NSString *)org AndDebug:(BOOL)debug AnduniURL:(BOOL)uniURL{
+    [self initializeWithApiKey:api_key UserId:user_id OrgInfo:org AndDebug:debug AnduniURL:uniURL EventCallbackBlock:nil];
+}
+
++ (void)initializeWithApiKey:(NSString *)api_key UserId:(NSString *)user_id OrgInfo:(NSString *)org  AndDebug:(BOOL)debug AnduniURL:(BOOL)uniURL EventCallbackBlock:(EventCallbackBlock) eventCallback {
+    NSMutableDictionary *userParams;
+    
+    LOG(SMT_LOG_INFO, @"Initializing library");
+    
+    @synchronized(self) {
+        if (!initialized) {
+            [self assertApiKeyValid:api_key];
+            [self assertUserIdValid:user_id];
+            
+            // set TEST_URL inside of OMTConstants.
+            //TEST_URL = [NSString stringWithFormat: @"%@.%@.%@", org,service,BASE_URL];
+            
+            userParams = [[NSMutableDictionary alloc] init];
+            [userParams setObject:api_key forKey:@"api_key"];
+            [userParams setObject:user_id forKey:@"uid"];
+            
+            [[OMTConfig instance] initialize:userParams:debug:uniURL:org];
+            trackerEngine = [[OMTEngine alloc] init];
+            channelEngine = [[OMTChannelEngine alloc] init];
+            BOOL result = [trackerEngine initialize:eventCallback];
+            if(!result) {
+                @throw[NSException exceptionWithName:@"InvalidInitializationException" reason:@"Error Initializing TrackerEngine" userInfo:nil];
+            }
+            initialized = YES;
+            LOG(SMT_LOG_INFO, @"Successfully initialized library");
+        }
+        else {
+            LOG(SMT_LOG_WARN, @"Duplicate Initialization call");
+        }
+    }
+}
+
 + (void)setLogLevel:(SMT_LOG)logLevel {
     [[OMTConfig instance] setLogType:logLevel];
 }

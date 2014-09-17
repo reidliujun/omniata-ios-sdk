@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>555BB318-1F2F-4DFB-AAFC-F4D9A4C79FA4</string>
+	<key>IDESourceControlProjectName</key>
+	<string>iOmniataAPI</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>E2262850-3D63-4EE5-9BE5-138AAA596B1E</key>
+		<string>https://github.com/Omniata/omniata-ios-sdk.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>iOmniataAPI.xcodeproj/project.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>E2262850-3D63-4EE5-9BE5-138AAA596B1E</key>
+		<string>../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>https://github.com/Omniata/omniata-ios-sdk.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>110</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>E2262850-3D63-4EE5-9BE5-138AAA596B1E</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>E2262850-3D63-4EE5-9BE5-138AAA596B1E</string>
+			<key>IDESourceControlWCCName</key>
+			<string>omniata-ios-sdk</string>
+		</dict>
+	</array>
+</dict>
+</plist>

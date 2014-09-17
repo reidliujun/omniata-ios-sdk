@@ -94,6 +94,18 @@ typedef void (^EventCallbackBlock)(NSDictionary* event, OMT_EVENT_STATUS status,
 + (void)initializeWithApiKey:(NSString *)api_key UserId:(NSString *)user_id AndDebug:(BOOL)debug;
 
 
+/**
+ Calls initializeWithApiKey with org name and uniURL sympol, which can seperate analyzer and engager services to different URLs.
+ */
++ (void)initializeWithApiKey:(NSString *)api_key UserId:(NSString *)user_id OrgInfo:(NSString *)org AndDebug:(BOOL)debug AnduniURL:(BOOL)uniURL EventCallbackBlock:(EventCallbackBlock) eventCallbackBlock;
+
+
+/**
+ Calls initializeWithApiKey with EventCallbackBlock nil support different URL.
+ */
++ (void)initializeWithApiKey:(NSString *)api_key UserId:(NSString *)user_id OrgInfo:(NSString *)org AndDebug:(BOOL)debug AnduniURL:(BOOL)uniURL;
+
+
 /**---------------------------------------------------------------------------------------
  * @name Debugging
  *  ---------------------------------------------------------------------------------------
