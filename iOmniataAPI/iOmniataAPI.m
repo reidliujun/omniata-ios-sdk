@@ -54,6 +54,54 @@ static OMTChannelEngine *channelEngine;
     }
 }
 
++ (void)initializeWithApiKeys:(NSDictionary *)user_info AndDebug:(BOOL)debug {
+    [self initializeWithApiKeys:user_info AndDebug:debug EventCallbackBlock:nil];
+}
+
++ (void)initializeWithApiKeys:(NSDictionary *)user_info AndDebug:(BOOL)debug EventCallbackBlock:(EventCallbackBlock) eventCallback {
+    NSMutableDictionary *userParams;
+
+    LOG(SMT_LOG_INFO, @"Initializing library");
+    @synchronized(self) {
+        if (!initialized) {
+            NSString *api_keys = @"";
+            NSString *user_ids = @"";
+
+            for (id key in user_info)
+            {
+                api_keys = [NSString stringWithFormat:@"%@%@,", api_keys, (NSString *) key];
+                user_ids = [NSString stringWithFormat:@"%@%@,", user_ids, (NSString *) [user_info objectForKey:key]];
+
+            }
+            api_keys = [api_keys substringToIndex:[api_keys length] - 1];
+            user_ids = [user_ids substringToIndex:[user_ids length] - 1];
+            NSLog(@"%@",api_keys);
+            NSLog(@"%@",user_ids);
+
+            [self assertApiKeysValid:user_info];
+            userParams = [[NSMutableDictionary alloc] init];
+            
+            [userParams setObject:api_keys forKey:@"api_keys"];
+            [userParams setObject:user_ids forKey:@"uids"];
+            [[OMTConfig instance] initialize:userParams:debug];
+            trackerEngine = [[OMTEngine alloc] init];
+            channelEngine = [[OMTChannelEngine alloc] init];
+            BOOL result = [trackerEngine initialize:eventCallback];
+            if(!result) {
+                @throw[NSException exceptionWithName:@"InvalidInitializationException" reason:@"Error Initializing TrackerEngine" userInfo:nil];
+            }
+            initialized = YES;
+            LOG(SMT_LOG_INFO, @"Successfully initialized library");
+        }
+        else {
+            LOG(SMT_LOG_WARN, @"Duplicate Initialization call");
+        }
+    }
+}
+
+
+
+
 + (void)setLogLevel:(SMT_LOG)logLevel {
     [[OMTConfig instance] setLogType:logLevel];
 }
@@ -94,6 +142,12 @@ static OMTChannelEngine *channelEngine;
 + (void)assertUserIdValid:(NSString*)userId {
     if (userId == nil || [userId length] == 0) {
         @throw [NSException exceptionWithName:@"InvalidArgumentException" reason:@"user_id cannot be nil or empty" userInfo:nil];
+    }
+}
+
++ (void)assertApiKeysValid:(NSDictionary*)apiKeys {
+    if (apiKeys == nil || [apiKeys count] == 0) {
+        @throw [NSException exceptionWithName:@"InvalidArgumentException" reason:@"api_keys cannot be nil or empty" userInfo:nil];
     }
 }
 

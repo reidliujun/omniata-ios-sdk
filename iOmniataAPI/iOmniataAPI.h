@@ -94,6 +94,32 @@ typedef void (^EventCallbackBlock)(NSDictionary* event, OMT_EVENT_STATUS status,
 + (void)initializeWithApiKey:(NSString *)api_key UserId:(NSString *)user_id AndDebug:(BOOL)debug;
 
 
+
+/**---------------------------------------------------------------------------------------
+ * @name Initialisation
+ *  ---------------------------------------------------------------------------------------
+ */
+/** Initialize the library to enable event tracking.
+ 
+ This method is for the usage of multiple apikeys and uids.
+ Comments:  It is not the same with single apikey and uid in the user_info with the above method since in this case, parameters form is as follows:
+            /event?api_keys=<api_key>&uids=<uid>
+            while in the above method it is as follows:
+            /event?api_key=<api_key>&uid=<uid>
+ @param api_keys The key identifiers for the application, including the apikey and uids. This cannot be nil or empty.
+ @param eventCallbackBlock The EventCallbackBlock to receive information of event sending success and failures. Can be nil.
+ */
++ (void)initializeWithApiKeys:(NSDictionary *)user_info AndDebug:(BOOL)debug EventCallbackBlock:(EventCallbackBlock) eventCallbackBlock;
+
+
+/**
+ Calls initializeWithApiKeys with EventCallbackBlock nil.
+ */
++ (void)initializeWithApiKeys:(NSDictionary *)user_info AndDebug:(BOOL)debug;
+
+
+
+
 /**---------------------------------------------------------------------------------------
  * @name Debugging
  *  ---------------------------------------------------------------------------------------
