@@ -11,7 +11,10 @@
         loadingMessages = NO;
         OMTConfig *config = [OMTConfig instance];
         maxRetries = config.maxRetriesForChannelMessages;
-        channelURL = [NSString stringWithFormat:@"%@%@&%@=", [config getURL:SMT_SERVER_CHANNEL],config.userParams,EVENT_POST_KEY_CHANNEL_ID];
+        NSString * parastring = @"";
+        parastring = [NSString stringWithFormat:@"api_key=%@&uid=%@",config.userParams[@"api_key"],config.userParams[@"uid"]];
+        //        channelURL = [NSString stringWithFormat:@"%@%@&%@=", [config getURL:SMT_SERVER_CHANNEL],config.userParams,EVENT_POST_KEY_CHANNEL_ID];
+        channelURL = [NSString stringWithFormat:@"%@%@&%@=", [config getURL:SMT_SERVER_CHANNEL],parastring,EVENT_POST_KEY_CHANNEL_ID];
 
     }
     return self;
