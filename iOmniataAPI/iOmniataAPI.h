@@ -84,14 +84,20 @@ typedef void (^EventCallbackBlock)(NSDictionary* event, OMT_EVENT_STATUS status,
  
  @param user_id The user_id given by the application. This cannot be nil or empty.
  @param api_key The key identifier for the application. This cannot be nil or empty.
+ @param org The org name. This cannot be nil or empty.
  @param eventCallbackBlock The EventCallbackBlock to receive information of event sending success and failures. Can be nil.
  */
-+ (void)initializeWithApiKey:(NSString *)api_key UserId:(NSString *)user_id AndDebug:(BOOL)debug EventCallbackBlock:(EventCallbackBlock) eventCallbackBlock;
 
 /**
- Calls initializeWithApiKey with EventCallbackBlock nil.
+ Calls initializeWithApiKey with org name and uniURL sympol, which can seperate analyzer and engager services to different URLs.
  */
-+ (void)initializeWithApiKey:(NSString *)api_key UserId:(NSString *)user_id AndDebug:(BOOL)debug;
++ (void)initializeWithApiKey:(NSString *)api_key UserId:(NSString *)user_id OrgInfo:(NSString *)org AndDebug:(BOOL)debug EventCallbackBlock:(EventCallbackBlock) eventCallbackBlock;
+
+
+/**
+ Calls initializeWithApiKey with EventCallbackBlock nil support different URL.
+ */
++ (void)initializeWithApiKey:(NSString *)api_key UserId:(NSString *)user_id OrgInfo:(NSString *)org AndDebug:(BOOL)debug;
 
 
 /**---------------------------------------------------------------------------------------

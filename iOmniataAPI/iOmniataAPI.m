@@ -20,11 +20,11 @@ static BOOL automaticParametersEnabled = true;
 static OMTEngine * trackerEngine;
 static OMTChannelEngine *channelEngine;
 
-+ (void)initializeWithApiKey:(NSString *)api_key UserId:(NSString *)user_id AndDebug:(BOOL)debug {
-    [self initializeWithApiKey:api_key UserId:user_id AndDebug:debug EventCallbackBlock:nil];
++ (void)initializeWithApiKey:(NSString *)api_key UserId:(NSString *)user_id OrgInfo:(NSString *)org AndDebug:(BOOL)debug {
+    [self initializeWithApiKey:api_key UserId:user_id OrgInfo:org AndDebug:debug EventCallbackBlock:nil];
 }
 
-+ (void)initializeWithApiKey:(NSString *)api_key UserId:(NSString *)user_id AndDebug:(BOOL)debug EventCallbackBlock:(EventCallbackBlock) eventCallback {
++ (void)initializeWithApiKey:(NSString *)api_key UserId:(NSString *)user_id OrgInfo:(NSString *)org  AndDebug:(BOOL)debug EventCallbackBlock:(EventCallbackBlock) eventCallback {
     NSMutableDictionary *userParams;
     
     LOG(SMT_LOG_INFO, @"Initializing library");
@@ -34,11 +34,14 @@ static OMTChannelEngine *channelEngine;
             [self assertApiKeyValid:api_key];
             [self assertUserIdValid:user_id];
             
+            // set TEST_URL inside of OMTConstants.
+            //TEST_URL = [NSString stringWithFormat: @"%@.%@.%@", org,service,BASE_URL];
+            
             userParams = [[NSMutableDictionary alloc] init];
             [userParams setObject:api_key forKey:@"api_key"];
             [userParams setObject:user_id forKey:@"uid"];
             
-            [[OMTConfig instance] initialize:userParams:debug];
+            [[OMTConfig instance] initialize:userParams:debug:org];
             trackerEngine = [[OMTEngine alloc] init];
             channelEngine = [[OMTChannelEngine alloc] init];
             BOOL result = [trackerEngine initialize:eventCallback];

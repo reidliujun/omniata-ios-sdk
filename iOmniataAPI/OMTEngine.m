@@ -86,7 +86,8 @@
             [eventCopy removeObjectForKey:@"om_creation_time"];
                 
             [url appendString:[OMTUtils joinDictionaryByString:eventCopy :@"&"]];
-                
+            
+//            NSLog(@"tracking url: %@", url);
             responseCode = [OMTUtils getFromURL:url:&response];
             
             NSNumber* numTries = [event objectForKey:@"om_retry"];

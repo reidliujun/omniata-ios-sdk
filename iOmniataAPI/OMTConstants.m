@@ -1,7 +1,7 @@
 #import "OMTConstants.h"
 
 //GENERAL
-NSString *const SDK_VERSION = @"ios-1.1.1";
+NSString *const SDK_VERSION = @"ios-1.1.3";
 NSString *const iOMNIATA = @"iOmniataAPI";
 
 NSString *const EVENT_POST_KEY_TYPE = @"type";
@@ -38,6 +38,7 @@ NSString* const OM_APNS_DEVICE_TOKEN = @"om_device_token";
 
 //SERVER
 NSString *const ROOT_URL = @"https://api.omniata.com/";
+NSString *const BASE_URL = @"omniata.com/";
 #ifdef DEVELOPMENT
 NSString *const TEST_URL = @"http://localhost:8000/";
 #else
