@@ -20,11 +20,11 @@ static BOOL automaticParametersEnabled = true;
 static OMTEngine * trackerEngine;
 static OMTChannelEngine *channelEngine;
 
-+ (void)initializeWithApiKey:(NSString *)api_key UserId:(NSString *)user_id OrgInfo:(NSString *)org AndDebug:(BOOL)debug {
-    [self initializeWithApiKey:api_key UserId:user_id OrgInfo:org AndDebug:debug EventCallbackBlock:nil];
++ (void)initializeWithApiKey:(NSString *)api_key UserId:(NSString *)user_id OrgName:(NSString *)org {
+    [self initializeWithApiKey:api_key UserId:user_id OrgName:org EventCallbackBlock:nil];
 }
 
-+ (void)initializeWithApiKey:(NSString *)api_key UserId:(NSString *)user_id OrgInfo:(NSString *)org  AndDebug:(BOOL)debug EventCallbackBlock:(EventCallbackBlock) eventCallback {
++ (void)initializeWithApiKey:(NSString *)api_key UserId:(NSString *)user_id OrgName:(NSString *)org EventCallbackBlock:(EventCallbackBlock) eventCallback {
     NSMutableDictionary *userParams;
     
     LOG(SMT_LOG_INFO, @"Initializing library");
@@ -41,7 +41,7 @@ static OMTChannelEngine *channelEngine;
             [userParams setObject:api_key forKey:@"api_key"];
             [userParams setObject:user_id forKey:@"uid"];
             
-            [[OMTConfig instance] initialize:userParams:debug:org];
+            [[OMTConfig instance] initialize:userParams:org];
             trackerEngine = [[OMTEngine alloc] init];
             channelEngine = [[OMTChannelEngine alloc] init];
             BOOL result = [trackerEngine initialize:eventCallback];

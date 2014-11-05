@@ -71,33 +71,25 @@ typedef void (^EventCallbackBlock)(NSDictionary* event, OMT_EVENT_STATUS status,
  *  ---------------------------------------------------------------------------------------
  */
 /** Initialize the library to enable event tracking.
+ * This method should be first invoked before using the library for any tracking etc. All the thread creation and loading of the persisted but not uploaded events are done in this method. Any calls to the other methods of this library will throw Exception.
+ * Throws NSException if user_id or api_key value is either nil or empty string. The eventCallbackBlock, block is called after an event has been succesfully sent (EVENT_SUCCESS), after an event sending failed (EVENT_FAILED) and after an event has been discarded after too many retries (EVENT_DISCARDED).
+ * The set callback doesn't survive app restart, i.e. after app restart no callback is set (if not explicitely set). Because of that the application code cannot assume that the callback is called for events that are tracked after setEventCallback is called - it is possible that after calling setEventCallback, events are tracked, and the app is stopped and restarted and the events are sent w/o callback.
  
- This method should be first invoked before using the library for any tracking etc. All the thread creation and loading of the
- persisted but not uploaded events are done in this method. Any calls to the other methods of this library will throw Exception.
- Throws NSException if user_id or api_key value is either nil or empty string.
- 
- The eventCallbackBlock-block is called after an event has been succesfully sent (EVENT_SUCCESS),
- after an event sending failed (EVENT_FAILED) and after an event has been discarded after too many retries (EVENT_DISCARDED).
- The set callback doesn't survive app restart, i.e. after app restart no callback is set (if not explicitely set).
- Because of that the application code cannot assume that the callback is called for events that are tracked after setEventCallback is called -
- it is possible that after calling setEventCallback, events are tracked, and the app is stopped and restarted and the events are sent w/o callback.
- 
- @param user_id The user_id given by the application. This cannot be nil or empty.
- @param api_key The key identifier for the application. This cannot be nil or empty.
- @param org The org name. This cannot be nil or empty.
- @param eventCallbackBlock The EventCallbackBlock to receive information of event sending success and failures. Can be nil.
+ * @param user_id The user_id given by the application. This cannot be nil or empty.
+ * @param api_key The key identifier for the application. This cannot be nil or empty.
+ * @param org The org name. This cannot be nil or empty.
+ * @param eventCallbackBlock The EventCallbackBlock to receive information of event sending success and failures. Can be nil.
  */
-
-/**
- Calls initializeWithApiKey with org name and uniURL sympol, which can seperate analyzer and engager services to different URLs.
- */
-+ (void)initializeWithApiKey:(NSString *)api_key UserId:(NSString *)user_id OrgInfo:(NSString *)org AndDebug:(BOOL)debug EventCallbackBlock:(EventCallbackBlock) eventCallbackBlock;
++ (void)initializeWithApiKey:(NSString *)api_key UserId:(NSString *)user_id OrgName:(NSString *)org EventCallbackBlock:(EventCallbackBlock) eventCallbackBlock;
 
 
 /**
- Calls initializeWithApiKey with EventCallbackBlock nil support different URL.
+ * Calls initializeWithApiKey with EventCallbackBlock nil support different URL.
+ * @param user_id The user_id given by the application. This cannot be nil or empty.
+ * @param api_key The key identifier for the application. This cannot be nil or empty.
+ * @param org The org name. This cannot be nil or empty.
  */
-+ (void)initializeWithApiKey:(NSString *)api_key UserId:(NSString *)user_id OrgInfo:(NSString *)org AndDebug:(BOOL)debug;
++ (void)initializeWithApiKey:(NSString *)api_key UserId:(NSString *)user_id OrgName:(NSString *)org;
 
 
 /**---------------------------------------------------------------------------------------
@@ -106,31 +98,34 @@ typedef void (^EventCallbackBlock)(NSDictionary* event, OMT_EVENT_STATUS status,
  */
 /** Set the logging level
  
- This method sets the Logging Level for the trace messages. The default value is set to SMT_LOG_NONE. This method can be called pre-initialize as well.
+ * This method sets the Logging Level for the trace messages. The default value is set to SMT_LOG_NONE. This method can be called pre-initialize as well.
  
- @param logLevel The verbosity and severity level of the traces.
- The possible values are
- SMT_LOG_NONE
- SMT_LOG_ERROR
- SMT_LOG_WARN
- SMT_LOG_INFO
- SMT_LOG_VERBOSE
+ * @param logLevel The verbosity and severity level of the traces.
+ * The possible values are
+ * SMT_LOG_NONE
+ * SMT_LOG_ERROR
+ * SMT_LOG_WARN
+ * SMT_LOG_INFO
+ * SMT_LOG_VERBOSE
  */
 + (void)setLogLevel:(SMT_LOG)logLevel;
 
 /** Sets the current Api Key
  
- After setting this all events moving forward will utilize this api key.
+ * After setting this all events moving forward will utilize this api key.
+ * @param api_key the api_key is defined as above
  */
 + (void)setApiKey:(NSString*)api_key;
 
 /** Set the current user id
  
- After setting this all events moving forward will utilize this user id.
+ * After setting this all events moving forward will utilize this user id.
+ * @param user_id user_id is uid
  */
 + (void)setUserId:(NSString*)user_id;
 
 /** Sets a callback for event sending.
+ * @param eventCallback callback for event sending
  */
 + (void)setEventCallback:(EventCallbackBlock) eventCallback;
 
@@ -140,51 +135,50 @@ typedef void (^EventCallbackBlock)(NSDictionary* event, OMT_EVENT_STATUS status,
  */
 /** Append the event for tracking.
  
- Use this method to track an application specific events. This method will add the event to the internal event queue and later uploaded to the server when certain batch management criteria are met.
- Throws NSException if called before intialization call or eventParams is nil.
- @param type The type of event being tracked.
- @param eventParams The non-nil event parameters as a NSDictionary.
- @return BOOL YES for successful event addition for tracking and NO for failure.
+ * Use this method to track an application specific events. This method will add the event to the internal event queue and later uploaded to the server when certain batch management criteria are met.
+ * Throws NSException if called before intialization call or eventParams is nil.
+ * @param type The type of event being tracked.
+ * @return BOOL YES for successful event addition for tracking and NO for failure.
  */
 + (BOOL) trackEvent:(NSString*)type :(NSDictionary *) eventParams;
 
 /** Append the purchase event for tracking.
  
- Use this method to track any purchase events. This method will add the event to the internal event queue and later uploaded to the server when certain batch management criteria are met.
- Throws NSException if called before intialization call, amount <= 0 and currency_code not among the ISO Currency Code.
+ * Use this method to track any purchase events. This method will add the event to the internal event queue and later uploaded to the server when certain batch management criteria are met.
+ * Throws NSException if called before intialization call, amount <= 0 and currency_code not among the ISO Currency Code.
  
- @param amount The amount in double that you need to track. Must be greater than 0.
- @param currency_code Optional NSString for the iso defined 3 alphabet currency_code. If nil is passed then it defaults to "USD"
- @return BOOL YES for successful event addition for tracking and NO for failure.
+ * @param amount The amount in double that you need to track. Must be greater than 0.
+ * @param currency_code Optional NSString for the iso defined 3 alphabet currency_code. If nil is passed then it defaults to "USD"
+ * @return BOOL YES for successful event addition for tracking and NO for failure.
  */
 + (BOOL)trackPurchaseEvent:(double)amount currency_code:(NSString *)currency_code;
 
 /** Append the purchase event for tracking.
  
- Use this method to track any purchase events. This method will add the event to the internal event queue and later uploaded to the server when certain batch management criteria are met.
- Throws NSException if called before intialization call, amount <= 0 and currency_code not among the ISO Currency Code.
+ * Use this method to track any purchase events. This method will add the event to the internal event queue and later uploaded to the server when certain batch management criteria are met.
+ * Throws NSException if called before intialization call, amount <= 0 and currency_code not among the ISO Currency Code.
  
- @param amount The amount in double that you need to track. Must be greater than 0.
- @param currency_code Optional NSString for the iso defined 3 alphabet currency_code. If nil is passed then it defaults to "USD"
- @param additional_params Optional NSDictionary containing additional parameters for tracking
- @return BOOL YES for successful event addition for tracking and NO for failure.
+ * @param amount The amount in double that you need to track. Must be greater than 0.
+ * @param currency_code Optional NSString for the iso defined 3 alphabet currency_code. If nil is passed then it defaults to "USD"
+ * @param additional_params Optional NSDictionary containing additional parameters for tracking
+ * @return BOOL YES for successful event addition for tracking and NO for failure.
  */
 + (BOOL)trackPurchaseEvent:(double)amount currency_code:(NSString *)currency_code additional_params:(NSDictionary*)additional_params;
 
 /** Append the load event for tracking.
  
- Use this method to track the load event. Use this to track the first time loading of the application. This method will add the event to the internal event queue and later uploaded to the server when certain batch management criteria are met.
- Throws NSException if called before initialisation call.
- @return BOOL YES for successful event addition for tracking and NO for failure.
+ * Use this method to track the load event. Use this to track the first time loading of the application. This method will add the event to the internal event queue and later uploaded to the server when certain batch management criteria are met.
+ * Throws NSException if called before initialisation call.
+ * @return BOOL YES for successful event addition for tracking and NO for failure.
  */
 + (BOOL)trackLoadEvent;
 
 /** Append the load event with parameters for tracking.
  
- Use this method to track the load event. Use this to track the first time loading of the application. This method will add the event to the internal event queue and later uploaded to the server when certain batch management criteria are met.
- Throws NSException if called before initialisation call.
- @param parameters NSDictionary containing additional parameters that will be tracked with load event.
- @return BOOL YES for successful event addition for tracking and NO for failure.
+ * Use this method to track the load event. Use this to track the first time loading of the application. This method will add the event to the internal event queue and later uploaded to the server when certain batch management criteria are met.
+ * Throws NSException if called before initialisation call.
+ * @param parameters NSDictionary containing additional parameters that will be tracked with load event.
+ * @return BOOL YES for successful event addition for tracking and NO for failure.
  */
 + (BOOL)trackLoadEventWithParameters:(NSDictionary*)parameters;
 
@@ -195,21 +189,22 @@ typedef void (^EventCallbackBlock)(NSDictionary* event, OMT_EVENT_STATUS status,
 /** Set a custom network reachability check. By default the code from Reachability sample application from Apple (v 3.5) is used for the check.
  * If your application e.g. has a always connected socket, you're application knows better than Reachability whether the network is available.
  * The block needs to be non-blocking, because it's call within the Channel API a call and should not block that. It also needs to be thread-safe.
+ @param reachability method to test the reachability
  */
 + (void)setReachability:(BOOL(^)(void))reachability;
 
 /** Enable Remote Push Notifications
  
- Use this method to register the user's push notification token. If enabled, the user will be eligible to receive targeted push notification messages.
- @param deviceToken NSData containing deviceToken passed on didRegisterForRemoteNotificationsWithDeviceToken
- @throws NSException if SDK has not been initialized
+ * Use this method to register the user's push notification token. If enabled, the user will be eligible to receive targeted push notification messages.
+ * @param deviceToken NSData containing deviceToken passed on didRegisterForRemoteNotificationsWithDeviceToken
+ * @throws NSException if SDK has not been initialized
  */
 + (void)enablePushNotifications:(NSData*)deviceToken;
 
 /** Disable push notifications
  
- Use this method to disable push notifications. Calling this method will instruct Omniata to prevent sending notifications to this user.
- @return BOOL YES if push notifications are switched from enabled to disabled.
+ * Use this method to disable push notifications. Calling this method will instruct Omniata to prevent sending notifications to this user.
+ * @return BOOL YES if push notifications are switched from enabled to disabled.
  */
 + (void)disablePushNotifications;
 
