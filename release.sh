@@ -25,7 +25,7 @@ git push -u origin master
 # Clean and run doxygen
 echo "Creating APIdoc"
 rm -rf appledoc
-appledoc --output appledoc --create-docset --no-install-docset --project-name OmniataAPI --project-company=Omniata --project-version=1.1 iOmniataAPI/iOmniataAPI.h
+appledoc --output appledoc --create-docset --no-install-docset --project-name OmniataAPI --project-company=Omniata --project-version=$VERSION iOmniataAPI/iOmniataAPI.h
 
 # Deploy docs and binary
 echo "Copying to Omniata repository"
@@ -37,7 +37,7 @@ PAGES_DIR=../Omniata.github.io/$PAGES_DIR_RELATIVE
 rm -rf $PAGES_DIR
 mkdir $PAGES_DIR
 mkdir $PAGES_DIR/apidoc
-cp -r appledoc/docset/Contents/Resources/Documents/* $PAGES_DIR/apidoc/
+cp -r docset/com.omniata.omniataapi.OmniataAPI.docset/Contents/Resources/Documents/ $PAGES_DIR/apidoc/
 cp $XCODE_FRAMEWORK $PAGES_DIR/
 
 echo "Commiting and pushing"
