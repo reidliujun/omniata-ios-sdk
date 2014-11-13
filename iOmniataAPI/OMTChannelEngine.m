@@ -1,6 +1,7 @@
 #import "OMTChannelEngine.h"
 #import "OMTUtils.h"
 #import "OMTConfig.h"
+#import "Logger.h"
 
 
 @implementation OMTChannelEngine
@@ -38,8 +39,6 @@
     if ([OMTUtils connectedToNetwork]) {
         NSString *urlStr = [NSString stringWithFormat:@"%@%d",channelURL,channelID];
         NSURL *url = [NSURL URLWithString:urlStr];
-        //NSLog(@"channel urlStr: %@", urlStr);
-//        NSLog(@"channel   url: %@", url);
         NSMutableURLRequest *urlRequest = [[NSMutableURLRequest alloc] initWithURL:url cachePolicy:NSURLCacheStorageNotAllowed timeoutInterval:10];
         NSOperationQueue *operationQueue = [[NSOperationQueue alloc] init];
         [urlRequest setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-type"];

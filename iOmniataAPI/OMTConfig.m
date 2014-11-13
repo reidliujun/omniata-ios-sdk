@@ -2,6 +2,7 @@
 #import "OMTUtils.h"
 #import "OmSBJson.h"
 #import "Reachability.h"
+#import "Logger.h"
 
 ///////////////////////////SINGLETON/////////////////////
 @interface OMTConfig ()
@@ -96,14 +97,11 @@ static NSString *org = nil;
 
 - (void)setUrls {
         LOG(SMT_LOG_INFO, @"CUSTOMIZED URL");
-            //https does not work now, will support soon.
         trackUrl = [NSString stringWithFormat:@"https://%@.%@.%@%@", org, @"analyzer",BASE_URL,EVENTS_TRACK_SUB_URL];
-//       NSLog(@"trackurl: %@", trackUrl);
 
         rooturl = ROOT_URL;
         configUrl = [NSString stringWithFormat:@"%@%@", rooturl, CONFIG_SUB_URL];
         channelUrl = [NSString stringWithFormat:@"https://%@.%@.%@%@", org, @"engager",BASE_URL,CHANNEL_MSGS_SUB_URL];
-//        NSLog(@"channelurl: %@", channelUrl);
 }
 
 - (NSString *)getURL:(SMT_SERVERS)serverId {
