@@ -6,6 +6,7 @@
 #import "OMTEngine.h"
 #import "OMTUtils.h"
 #import "OMTChannelEngine.h"
+#import "Logger.h"
 
 @interface iOmniataAPI()
 

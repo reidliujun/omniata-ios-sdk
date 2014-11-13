@@ -10,7 +10,7 @@ static unsigned int userLogType = 0;
     {
         userLogType = [[OMTConfig instance] getLogType];
     }
-    if (log_Type > userLogType) return;
+    if (log_Type < userLogType) return;
     NSString *logTypeMsg;
     switch (log_Type) {
         case SMT_LOG_INFO:
