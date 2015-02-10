@@ -3,6 +3,7 @@
 #import "OmSBJson.h"
 #import "Reachability.h"
 #import "Logger.h"
+#import "OMTConstants.h"
 
 ///////////////////////////SINGLETON/////////////////////
 @interface OMTConfig ()

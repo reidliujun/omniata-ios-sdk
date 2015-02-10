@@ -1,4 +1,5 @@
 #import <Foundation/Foundation.h>
+#import "OMTConstants.h"
 
 #include "iOmniataAPI.h"
 

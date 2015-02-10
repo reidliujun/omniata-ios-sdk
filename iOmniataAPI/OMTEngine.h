@@ -1,5 +1,5 @@
 #import <Foundation/Foundation.h>
-
+#import "iOmniataAPI.h"
 @class OMTQueue;
 @class OMTConfig;
 
